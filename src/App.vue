@@ -1,7 +1,7 @@
 <template>
   <v-app id="app">
     <v-app-bar dense>
-      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
       <v-toolbar-title>Testing site</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn to="/login" elevation="0">
@@ -37,7 +37,7 @@
         </v-card>
       </v-menu>
     </v-app-bar>
-    <v-navigation-drawer app color="primary" v-model="drawer">
+    <v-navigation-drawer app color="primary" v-model="drawer" temporary>
       <v-list nav>
         <v-list-item v-for="(item, index) in navigationItems" :key="index" link :to="item.href">
           <v-list-item-icon class="mr-1">
