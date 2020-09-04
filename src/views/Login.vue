@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col>
-        <v-card class="ma-2" :elevation="5" width="300" v-if="$store.state.profile">
+        <v-card class="ma-2" :elevation="5" v-if="$store.state.profile">
           <div class="overline mt-2 ml-2">ACCOUNT INFO</div>
           <v-list-item>
             <v-list-item-avatar size="80" class="ma-2"><v-img :src="$store.state.profile.getImageUrl()" :height="80" :width="80"/></v-list-item-avatar>
@@ -11,8 +11,11 @@
               <v-list-item-subtitle>{{$store.state.profile.getEmail()}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item>
+            <v-text-field label="Public Username"/>
+          </v-list-item>
         </v-card>
-        <sign-in-button ref="SignIn" class="ma-2" color="blue" :dark="true" :onSignIn="signIn" :onSignOut="signOut"/>
+        <sign-in-button ref="SignIn" class="ma-2" color="primary" :dark="true" :onSignIn="signIn" :onSignOut="signOut"/>
       </v-col>
     </v-row>
   </v-container>

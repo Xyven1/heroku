@@ -3,7 +3,7 @@
     <v-col class="pa-0 fill-height d-flex flex-column">
       <v-row class="shrink">
         <v-col>
-          <v-card flat class="text-h1 text-center">Trancend Air Utilities Hub</v-card>
+          <v-card flat class="text-h2 text-center">This is a very interesting site, I swear</v-card>
         </v-col>
       </v-row>
     </v-col>

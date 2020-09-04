@@ -1,6 +1,43 @@
 <template>
   <v-app id="app">
-    <v-navigation-drawer app permanent width="190" dark color="blue">
+    <v-app-bar dense>
+      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
+      <v-toolbar-title>Testing site</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn to="/login" elevation="0">
+        <v-list-item-content class="pr-2">
+          {{$store.state.profile ? $store.state.profile.getName() : "Login"}}
+        </v-list-item-content>
+        <v-avatar :size="33">
+          <v-img :src="$store.state.profile ? $store.state.profile.getImageUrl() : 'loading'">
+            <v-icon v-if="!$store.state.profile">mdi-account</v-icon>
+          </v-img>
+        </v-avatar>
+      </v-btn>
+      <v-menu offset-y transition="slide-y-transition" :close-on-content-click="false">
+        <template v-slot:activator="{ on: menu, attrs }">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on: tooltip }">
+              <v-btn icon v-bind="attrs" v-on="{ ...tooltip, ...menu }">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <span>Settings</span>
+          </v-tooltip>
+        </template>
+        <v-card>
+          <v-list>
+            <v-list-item>
+              <v-list-item-action>
+                <v-switch v-model="$vuetify.theme.dark" @change="darkMode"></v-switch>
+              </v-list-item-action>
+              <v-list-item-title>Dark Mode</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </v-app-bar>
+    <v-navigation-drawer app color="primary" v-model="drawer">
       <v-list nav>
         <v-list-item v-for="(item, index) in navigationItems" :key="index" link :to="item.href">
           <v-list-item-icon class="mr-1">
@@ -11,22 +48,6 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-      <template v-slot:append>
-        <v-list nav>
-          <v-list-item to="/login" class="pl-1">
-            <v-list-item-icon class="ma-2 ml-0">
-              <v-avatar :size="33">
-                <v-img :src="$store.state.profile ? $store.state.profile.getImageUrl() : 'loading'">
-                  <v-icon v-if="!$store.state.profile">mdi-account</v-icon>
-                </v-img>
-              </v-avatar>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>{{$store.state.profile ? $store.state.profile.getName() : "Login"}}</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </template>
     </v-navigation-drawer>
     <v-main class="fill-height" fluid ref="main">
       <transition name="fade" mode="out-in">
@@ -46,11 +67,18 @@ export default {
         { title: 'Home', href:'/', icon: 'mdi-home'},
         { title: 'Testing tab', href:'/test', icon: 'mdi-test' },
       ],
+      drawer: false
     };
-  },
-  methods: {
+  },methods:{
+    darkMode(){
+      var vm = this
+      localStorage.darkMode=vm.$vuetify.theme.dark
+    },
   },
   mounted(){
+    var vm = this
+    if(localStorage.darkMode)
+      vm.$vuetify.theme.dark = localStorage.darkMode == "true"
   },
 }
 </script>

@@ -16,7 +16,6 @@ Vue.use(GoogleAuth, {
 
 Vue.prototype.$axios = axios 
 Vue.prototype.$auth = Vue.GoogleAuth // $auth becomes a promise which returns the google oauth2 object
-var routes = []
 
 //global storage for profile data and whether or not the user is signed in
 const store = new Vuex.Store({
@@ -51,15 +50,18 @@ const ifAuthenticated = async (to, from, next) => {
   })
 }
 //automatically maps all components in pages folder to routes
+var routes = []
 const req = require.context('./views/', false, /\.(js|vue)$/i)
 req.keys().map(key => {
   const name = key.match(/\w+/)[0]
   var component = Vue.component(name, req(key).default)
   routes.push(
-    ({
+    ({ //switch expression 
       Home: {path: '/', component: component},
       Login: {path: '/'+name, component: component},
-    })[name] || {path: '/'+name, component: component, beforeEnter: ifAuthenticated})
+    })[name]
+    || {path: '/'+name, component: component, beforeEnter: ifAuthenticated} //default case
+  )
   return component
 })
 //constructs vue router element
