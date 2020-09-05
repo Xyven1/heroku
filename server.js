@@ -38,7 +38,7 @@ app.post('/database/user', async (req, res) => {
 })
 app.get('/database/user', async (req, res) => {
 	console.log("retrieved username")
-	await db.one('SELECT * FROM users WHERE userid = ${userid}', {userid: parseInt(res.locals.userid)})
+	await db.one('SELECT * FROM users WHERE userid = ${userid}', {userid: res.locals.userid})
 	.then((result)=>{
 		console.log(result)
 		res.send(result)
