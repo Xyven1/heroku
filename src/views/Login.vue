@@ -11,10 +11,11 @@
               <v-list-item-subtitle>{{$store.state.profile.getEmail()}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item>
-            <v-text-field label="Public Username"/>
-          </v-list-item>
         </v-card>
+        <v-list-item>
+            <v-text-field label="Public Username" v-model="username"/>
+            <v-btn @click="submit">Submit</v-btn>
+          </v-list-item>
         <sign-in-button ref="SignIn" class="ma-2" color="primary" :dark="true" :onSignIn="signIn" :onSignOut="signOut"/>
       </v-col>
     </v-row>
@@ -24,6 +25,11 @@
 <script>
 import SignInButton from '../components/SignInButton.vue';
 export default {
+  data (){
+    return {
+      username: null,
+    }
+  },
   components: {
     SignInButton
   },
@@ -32,7 +38,13 @@ export default {
       // this.$router.push(this.$route.query.redirect || '/')
     },
     signOut(){
-    }
+    },
+    async submit(){
+      var vm = this
+      await vm.$auth.then(async auth =>{
+        vm.$axios.post('/database/user', {idtoken: auth.currentUser.get().getAuthResponse().id_token, email:vm.$store.state.profile.getEmail(), username: vm.username})
+      })
+    },
   },
   async mounted(){
     await this.$auth.then(async auth =>{
