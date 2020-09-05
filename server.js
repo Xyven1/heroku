@@ -31,7 +31,7 @@ app.get(/.*/, function (req, res) {
 //database config
 app.post('/database/user', async (req, res) => {
 	console.log("ran databse")
-	await db.none('INSERT INTO users(email, username) VALUES(${email}, ${username}) ON CONFLICT (email) DO UPDATE SET username = EXCLUDED.username', {email: req.body.email, username: req.body.username})
+	await db.none('INSERT INTO users(email, username) VALUES(${email}, ${username}) ON CONFLICT (users_pk) DO UPDATE SET username = EXCLUDED.username', {email: req.body.email, username: req.body.username})
 	.then(()=>res.send("Success"))
 	.catch(e=>{
 		res.send(e)
