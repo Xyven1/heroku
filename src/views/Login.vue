@@ -27,11 +27,13 @@ import SignInButton from '../components/SignInButton.vue';
 export default {
   data (){
     return {
-      username: null,
+      username: null
     }
   },
   components: {
     SignInButton
+  },
+  computed: {
   },
   methods: {
     signIn(){
@@ -42,17 +44,30 @@ export default {
     async submit(){
       var vm = this
       await vm.$auth.then(async auth =>{
-        vm.$axios.post('/database/user', {idtoken: auth.currentUser.get().getAuthResponse().id_token, email:vm.$store.state.profile.getEmail(), username: vm.username})
+        vm.$axios.post('/database/user', {
+          idtoken: auth.currentUser.get().getAuthResponse().id_token,
+          username: vm.username
+        }).then(res=>{
+          if(res=="Success")
+            alert("It worked")
+          else{
+            console.log(res)
+          }
+        })
       })
     },
   },
   async mounted(){
-    await this.$auth.then(async auth =>{
+    var vm = this
+    await vm.$auth.then(async auth =>{
       if (!auth.isSignedIn.get() && this.$route.query.redirect){
         await auth.signIn()
         this.$store.commit('signIn')
         this.$router.push(this.$route.query.redirect)
       }
+      await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then((res)=>{
+        console.log(res)
+      })
     }).catch((e)=>console.log(e))
   }
 }
