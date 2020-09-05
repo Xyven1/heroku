@@ -1,6 +1,6 @@
 <template>
   <v-app id="app">
-    <v-app-bar dense>
+    <v-app-bar app dense>
       <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
       <v-toolbar-title>Testing site</v-toolbar-title>
       <v-spacer></v-spacer>
@@ -37,7 +37,7 @@
         </v-card>
       </v-menu>
     </v-app-bar>
-    <v-navigation-drawer app color="primary" v-model="drawer" temporary>
+    <v-navigation-drawer app color="primary" v-model="drawer" temporary width="200">
       <v-list nav>
         <v-list-item v-for="(item, index) in navigationItems" :key="index" link :to="item.href">
           <v-list-item-icon class="mr-1">
@@ -65,7 +65,7 @@ export default {
     return {
       navigationItems: [
         { title: 'Home', href:'/', icon: 'mdi-home'},
-        { title: 'Testing tab', href:'/test', icon: 'mdi-test' },
+        { title: 'Testing tab', href:'/test', icon: 'mdi-test-tube' },
       ],
       drawer: false
     };
