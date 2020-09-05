@@ -32,7 +32,7 @@ app.get(/.*/, function (req, res) {
 app.post('/database/user', async (req, res) => {
 	console.log("ran databse")
 	await db.none(`INSERT INTO users (email, username) VALUES('${req.body.email}','${req.body.username}') 
-	ON CONFLICT (email) DO 
+	ON CONFLICT (users_email_index) DO 
 		UPDATE SET username = '${req.body.username}'`, )
 	.then(()=>res.send("Success"))
 	.catch(e=>{
