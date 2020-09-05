@@ -66,7 +66,7 @@ export default {
         this.$router.push(this.$route.query.redirect)
       }
       await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then((res)=>{
-        console.log(res)
+        vm.username = res.data.username
       })
     }).catch((e)=>console.log(e))
   }
