@@ -80,9 +80,8 @@ export default {
         await vm.$store.commit('signIn')
         this.$router.push(this.$route.query.redirect)
       }
-      vm.username = vm.$store.state.username || ''
     }).catch((e)=>console.log(e))
-    
+    vm.username = vm.$store.state.username
   }
 }
 </script>

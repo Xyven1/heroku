@@ -44,8 +44,9 @@ const store = new Vuex.Store({
 })
 
 //Initialize isSignedIn property 
-Vue.prototype.$auth.then(auth => {
-  if(auth.isSignedIn.get()) store.commit('signIn')
+Vue.prototype.$auth.then(async auth => {
+  if(auth.isSignedIn.get())
+   await store.commit('signIn')
 })
 //define function to run when path requires authentication
 const ifAuthenticated = async (to, from, next) => {
