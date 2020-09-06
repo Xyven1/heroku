@@ -32,6 +32,7 @@ const store = new Vuex.Store({
           state.profile.username = res.data.username
         ).catch()
       })
+      console.log(state.profile)
     },
     async signOut(state){
       state.isSignedIn=false
