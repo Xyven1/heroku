@@ -7,7 +7,7 @@
           <v-list-item>
             <v-list-item-avatar size="80" class="ma-2"><v-img :src="$store.state.profile.getImageUrl()" :height="80" :width="80"/></v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title class="headline mb-1">{{$store.state.profile.username || $store.state.profile.getName()}}</v-list-item-title>
+              <v-list-item-title class="headline mb-1">{{$store.state.username || $store.state.profile.getName()}}</v-list-item-title>
               <v-list-item-subtitle>{{$store.state.profile.getEmail()}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     signIn(){
-      this.username = this.$store.state.profile.username
+      this.username = this.$store.state.username
     },
     signOut(){
       this.username=null
@@ -79,7 +79,7 @@ export default {
         this.$router.push(this.$route.query.redirect)
       }
     }).catch((e)=>console.log(e))
-    vm.username = vm.$store.state.profile.username || ''
+    vm.username = vm.$store.state.username || ''
   }
 }
 </script>

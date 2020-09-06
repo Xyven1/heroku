@@ -21,22 +21,23 @@ Vue.prototype.$auth = Vue.GoogleAuth // $auth becomes a promise which returns th
 const store = new Vuex.Store({
   state: {
     isSignedIn: false,
-    profile: null
+    googleProfile: null,
+    username: null
   },
   mutations: {
     async signIn(state){
       state.isSignedIn=true
       await Vue.prototype.$auth.then(async auth => {
-        state.profile = auth.currentUser.get().getBasicProfile()
+        state.googleProfile = auth.currentUser.get().getBasicProfile()
         await axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
-          state.profile.username = res.data.username
+          state.username = res.data.username
         ).catch()
       })
-      console.log(state.profile)
     },
     async signOut(state){
       state.isSignedIn=false
-      state.profile=null
+      state.googleProfile=null
+      state.username=null
     }
   }
 })
