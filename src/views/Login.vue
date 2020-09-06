@@ -31,8 +31,8 @@ export default {
       success: null,
       error: null,
       usernameRules: [
-        value=>value == '' || value.length>2 || 'Username must at least 3 characters',
-        value=>value == '' || value.length<21 || 'Maximum 20 characters',
+        value=>value == '' || value?.length>2 || 'Username must at least 3 characters',
+        value=>value == '' || value?.length<21 || 'Maximum 20 characters',
         value=>value == '' || /^[a-zA-Z]/g.test(value) || 'Username must begin with a letter',
         value=>value == '' || /^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(value) || 'Username can only contain letters, numbers, -, and .',
       ],
