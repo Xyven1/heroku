@@ -30,7 +30,7 @@ app.use('/database', async (req, res, next) => {
 app.post('/database/user', async (req, res) => {
 	console.log("updated or added username")
 	await db.none('INSERT INTO users(userid, username) VALUES(${userid}, ${username}) ON CONFLICT (userid) DO UPDATE SET username = EXCLUDED.username', {userid: res.locals.userid, username: req.body.username})
-	.then(()=>res.status(200).send("success"))
+	.then(()=>res.send({code: 0}))
 	.catch(e=>{
 		res.send(e)
 		console.log(e)
