@@ -26,14 +26,9 @@
           </v-tooltip>
         </template>
         <v-card>
-          <v-list>
-            <v-list-item>
-              <v-list-item-action>
-                <v-switch v-model="$vuetify.theme.dark" @change="darkMode"></v-switch>
-              </v-list-item-action>
-              <v-list-item-title>Dark Mode</v-list-item-title>
-            </v-list-item>
-          </v-list>
+          <div class="pa-2">
+            <v-btn icon @click="darkMode"><v-icon>{{$vuetify.theme.dark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'}}</v-icon></v-btn>
+          </div>
         </v-card>
       </v-menu>
     </v-app-bar>
@@ -72,6 +67,7 @@ export default {
   },methods:{
     darkMode(){
       var vm = this
+      vm.$vuetify.theme.dark = !vm.$vuetify.theme.dark
       localStorage.darkMode=vm.$vuetify.theme.dark
     },
   },

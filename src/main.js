@@ -27,9 +27,10 @@ const store = new Vuex.Store({
   mutations: {
     async signIn(state){
       await Vue.prototype.$auth.then(async auth => {
-        await axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
+        await axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>{
           state.username = res.data.username
-        )
+          vuetify.theme.dark = res.data.darkmode
+        })
         state.googleProfile = auth.currentUser.get().getBasicProfile()
       })
       state.isSignedIn=true
