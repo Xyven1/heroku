@@ -29,7 +29,7 @@ app.use('/database', async (req, res, next) => {
 //database config
 app.post('/database/user', async (req, res) => {
 	console.log("updated or added username")
-	await db.none('INSERT INTO users(userid, username) VALUES(${userid}, ${username}) ON CONFLICT (userid) DO UPDATE SET username = EXCLUDED.username', {userid: res.locals.userid, username: req.body.username})
+	await db.any('INSERT INTO users(userid, username) VALUES(${userid}, ${username}) ON CONFLICT (userid) DO UPDATE SET username = EXCLUDED.username', {userid: res.locals.userid, username: req.body.username})
 	.then((r)=>res.send(r))
 	.catch(e=>{
 		res.send(e)
