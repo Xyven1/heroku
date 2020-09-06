@@ -44,8 +44,16 @@ export default {
   computed: {
   },
   methods: {
+    async getUsername(){
+      var vm = this
+      await vm.$auth.then(async auth => 
+        await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
+          vm.username = res.data.username
+        )
+      )
+    },
     signIn(){
-      this.username = this.$store.state.username
+      this.getUsername()
     },
     signOut(){
       this.username=null
@@ -80,10 +88,8 @@ export default {
         await vm.$store.commit('signIn')
         this.$router.push(this.$route.query.redirect)
       }
-      await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
-        vm.$store.state.username = res.data.username
-      ).catch()
     }).catch((e)=>console.log(e))
+    vm.getUsername()
   }
 }
 </script>
