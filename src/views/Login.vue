@@ -56,7 +56,7 @@ export default {
       this.getUsername()
     },
     signOut(){
-      this.username=null
+      this.username=''
     },
     async submit(){
       var vm = this
