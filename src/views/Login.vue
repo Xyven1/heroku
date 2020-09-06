@@ -56,6 +56,7 @@ export default {
       this.getUsername()
     },
     signOut(){
+      this.username=null
     },
     async submit(){
       var vm = this
@@ -66,12 +67,13 @@ export default {
           idtoken: auth.currentUser.get().getAuthResponse().id_token,
           username: vm.username
         }).then(res=>{
-          if(res=="Success")
+          console.log(res)
+          if(res.data.code == 0)
             vm.success=`Your username is now ${vm.username}`
-          else if (res.data.code == "23505")
+          else if (res.data.code == 23505)
             vm.error=`The username ${vm.username} is already taken`
           else 
-          vm.error="Something went wrong..."
+            vm.error="Something went wrong..."
         })
       })
     },
