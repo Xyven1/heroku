@@ -7,7 +7,7 @@
           <v-list-item>
             <v-list-item-avatar size="80" class="ma-2"><v-img :src="$store.state.profile.getImageUrl()" :height="80" :width="80"/></v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title class="headline mb-1">{{$store.state.profile.getName()}}</v-list-item-title>
+              <v-list-item-title class="headline mb-1">{{$store.state.profile.username || $store.state.profile.getName()}}</v-list-item-title>
               <v-list-item-subtitle>{{$store.state.profile.getEmail()}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -44,16 +44,8 @@ export default {
   computed: {
   },
   methods: {
-    async getUsername(){
-      var vm = this
-      await vm.$auth.then(async auth => 
-        await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
-          vm.username = res.data.username
-        )
-      )
-    },
     signIn(){
-      this.getUsername()
+      this.username = this.$store.state.profile.username
     },
     signOut(){
       this.username=null
@@ -83,11 +75,11 @@ export default {
     await vm.$auth.then(async auth =>{
       if (!auth.isSignedIn.get() && this.$route.query.redirect){
         await auth.signIn()
-        this.$store.commit('signIn')
+        await vm.$store.commit('signIn')
         this.$router.push(this.$route.query.redirect)
       }
     }).catch((e)=>console.log(e))
-    await vm.getUsername()
+    vm.username = vm.$store.state.profile.username || ''
   }
 }
 </script>

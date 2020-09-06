@@ -24,11 +24,16 @@ const store = new Vuex.Store({
     profile: null
   },
   mutations: {
-    signIn(state){
+    async signIn(state){
       state.isSignedIn=true
-      Vue.prototype.$auth.then(auth => state.profile = auth.currentUser.get().getBasicProfile())
+      await Vue.prototype.$auth.then(async auth => {
+        state.profile = auth.currentUser.get().getBasicProfile()
+        await axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
+          state.profile.username = res.data.username
+        ).catch()
+      })
     },
-    signOut(state){
+    async signOut(state){
       state.isSignedIn=false
       state.profile=null
     }

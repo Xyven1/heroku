@@ -32,7 +32,7 @@ export default {
       var vm = this
       await vm.$auth.then(async auth =>{
         await auth.signIn()
-        vm.$store.commit('signIn')
+        await vm.$store.commit('signIn')
         vm.onSignIn()
       })
     },
@@ -40,7 +40,7 @@ export default {
       var vm = this
       await vm.$auth.then(async auth =>{
         await auth.signOut()
-        vm.$store.commit('signOut')
+        await vm.$store.commit('signOut')
         vm.onSignOut ? vm.onSignOut() : vm.$router.push('/login')
       })
     },
