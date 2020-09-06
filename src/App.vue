@@ -6,10 +6,10 @@
       <v-spacer></v-spacer>
       <v-btn to="/login" elevation="0">
         <v-list-item-content class="pr-2">
-          {{$store.state.username || $store.state.googleProfile?.getName() || "Login"}}
+          {{$store.state.isSignedIn ? $store.state.username || $store.state.googleProfile.getName() : "Login"}}
         </v-list-item-content>
         <v-avatar :size="33">
-          <v-img :src="$store.state.googleProfile?.getImageUrl() || 'loading'">
+          <v-img :src="$store.state.isSignedIn ? $store.state.googleProfile.getImageUrl() : 'loading'">
             <v-icon v-if="!$store.state.isSignedIn">mdi-account</v-icon>
           </v-img>
         </v-avatar>
