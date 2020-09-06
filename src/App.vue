@@ -6,11 +6,11 @@
       <v-spacer></v-spacer>
       <v-btn to="/login" elevation="0">
         <v-list-item-content class="pr-2">
-          {{$store.state.profile ? $store.state.profile.getName() : "Login"}}
+          {{$store.state.googleProfile ? $store.state.googleProfile.getName() : "Login"}}
         </v-list-item-content>
         <v-avatar :size="33">
-          <v-img :src="$store.state.profile ? $store.state.profile.getImageUrl() : 'loading'">
-            <v-icon v-if="!$store.state.profile">mdi-account</v-icon>
+          <v-img :src="$store.state.googleProfile ? $store.state.googleProfile.getImageUrl() : 'loading'">
+            <v-icon v-if="!$store.state.googleProfile">mdi-account</v-icon>
           </v-img>
         </v-avatar>
       </v-btn>
