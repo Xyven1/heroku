@@ -80,8 +80,10 @@ export default {
         await vm.$store.commit('signIn')
         this.$router.push(this.$route.query.redirect)
       }
+      await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
+        vm.$store.state.username = res.data.username
+      ).catch()
     }).catch((e)=>console.log(e))
-    vm.username = vm.$store.state.username
   }
 }
 </script>
