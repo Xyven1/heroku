@@ -60,8 +60,10 @@ export default {
           username: vm.username
         }).then(res=>{
           console.log(res)
-          if(res.data.code == 0)
+          if(res.data.code == 0){
             vm.success=`Your username is now ${vm.username}`
+            vm.$store.state.username = vm.username
+          }
           else if (res.data.code == 23505)
             vm.error=`The username ${vm.username} is already taken`
           else 
@@ -78,8 +80,9 @@ export default {
         await vm.$store.commit('signIn')
         this.$router.push(this.$route.query.redirect)
       }
+      vm.username = vm.$store.state.username || ''
     }).catch((e)=>console.log(e))
-    vm.username = vm.$store.state.username || ''
+    
   }
 }
 </script>
