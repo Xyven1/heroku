@@ -49,7 +49,7 @@ export default {
       await vm.$auth.then(async auth => 
         await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
           vm.username = res.data.username
-        ).catch(()=>{})
+        )
       )
     },
     signIn(){

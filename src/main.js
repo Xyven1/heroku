@@ -29,7 +29,7 @@ const store = new Vuex.Store({
       await Vue.prototype.$auth.then(async auth => {
         await axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
           state.username = res.data.username
-        ).catch(()=>{})
+        )
         state.googleProfile = auth.currentUser.get().getBasicProfile()
       })
       state.isSignedIn=true

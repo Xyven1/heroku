@@ -21,7 +21,7 @@ app.use('/database', async (req, res, next) => {
 		console.log("Authenticated "+res.locals.userid)
 		next()
 	}).catch((e)=>{
-		res.status(500).send("Failed to authenticate")
+		res.send("Failed to authenticate")
 		console.error(e)
 	})
 })
@@ -43,7 +43,7 @@ app.get('/database/user', async (req, res) => {
 		console.log(result)
 		res.send(result)
 	}).catch(e=>{
-		res.status(500).send("Failed to contact database")
+		res.send("Failed to retrieve username")
 		console.error(e)
 	})
 })
