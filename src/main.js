@@ -2,20 +2,20 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import App from './App.vue'
 import vuetify from './plugins/vuetify'
+import auth from './plugins/auth'
+import database from './plugins/database'
 import axios from 'axios'
 import VueRouter from 'vue-router'
-import GoogleAuth from './auth/auth.js'
 
 Vue.config.productionTip = false
 
 Vue.use(VueRouter)
 Vue.use(Vuex)
-Vue.use(GoogleAuth, {
+Vue.use(auth, {
   client_id: '***REMOVED***'
 })
-
-Vue.prototype.$axios = axios 
-Vue.prototype.$auth = Vue.GoogleAuth // $auth becomes a promise which returns the google oauth2 object
+Vue.use(database, Vue.prototype.$auth)
+Vue.prototype.$axios = axios
 
 //global storage for profile data and whether or not the user is signed in
 const store = new Vuex.Store({
@@ -27,18 +27,21 @@ const store = new Vuex.Store({
   mutations: {
     async signIn(state){
       await Vue.prototype.$auth.then(async auth => {
-        await axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>{
-          state.username = res.data.username
-        })
+        if(!auth.isSignedIn.get()) await auth.signIn()
+        await Vue.prototype.$database.getUser().then(res=>{
+          state.username = res.username
+        }).catch(e=>console.error(e))
         state.googleProfile = auth.currentUser.get().getBasicProfile()
+        state.isSignedIn=true
       })
-      state.isSignedIn=true
-      console.log(state)
     },
     async signOut(state){
-      state.isSignedIn=false
-      state.googleProfile=null
-      state.username=null
+      await Vue.prototype.$auth.then(async auth =>{
+        state.isSignedIn = false
+        state.googleProfile = null
+        state.username = null
+        await auth.signOut()
+      })
     }
   }
 })
@@ -51,6 +54,7 @@ Vue.prototype.$auth.then(async auth => {
 //define function to run when path requires authentication
 const ifAuthenticated = async (to, from, next) => {
   Vue.prototype.$auth.then(auth=>{
+    console.log(auth.isSignedIn.get())
     if (auth.isSignedIn.get()) {
       next()
       return

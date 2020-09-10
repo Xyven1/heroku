@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col>
-        <v-card class="ma-2" :elevation="5" v-if="$store.state.googleProfile">
+        <v-card class="ma-2" :elevation="5" v-if="$store.state.isSignedIn">
           <div class="overline mt-2 ml-2">ACCOUNT INFO</div>
           <v-list-item>
             <v-list-item-avatar size="80" class="ma-2"><v-img :src="$store.state.googleProfile.getImageUrl()" :height="80" :width="80"/></v-list-item-avatar>
@@ -44,16 +44,8 @@ export default {
   computed: {
   },
   methods: {
-    async getUsername(){
-      var vm = this
-      await vm.$auth.then(async auth => 
-        await vm.$axios.get('/database/user', {params: {idtoken: auth.currentUser.get().getAuthResponse().id_token}}).then(res=>
-          vm.username = res.data.username
-        )
-      )
-    },
     signIn(){
-      this.getUsername()
+      this.username=this.$store.state.username
     },
     signOut(){
       this.username=''
@@ -62,34 +54,27 @@ export default {
       var vm = this
       if(vm.username == '' || vm.username.length<3 || vm.username.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.username))
         return
-      await vm.$auth.then(async auth =>{
-        vm.$axios.post('/database/user', {
-          idtoken: auth.currentUser.get().getAuthResponse().id_token,
-          username: vm.username
-        }).then(res=>{
-          console.log(res)
-          if(res.data.code == 0){
-            vm.success=`Your username is now ${vm.username}`
-            vm.$store.state.username = vm.username
-          }
-          else if (res.data.code == 23505)
-            vm.error=`The username ${vm.username} is already taken`
-          else 
-            vm.error="Something went wrong..."
-        })
+      vm.$database.updateUser({username: vm.username})
+      .then(res=>{
+        console.log(res)
+        if(res.data.code == 0){
+          vm.success=`Your username is now ${vm.username}`
+          vm.$store.state.username = vm.username
+        }
+        else if (res.data.code == 23505)
+          vm.error=`The username ${vm.username} is already taken`
+        else 
+          vm.error="Something went wrong..."
       })
     },
   },
   async mounted(){
     var vm = this
-    await vm.$auth.then(async auth =>{
-      if (!auth.isSignedIn.get() && this.$route.query.redirect){
-        await auth.signIn()
-        await vm.$store.commit('signIn')
-        this.$router.push(this.$route.query.redirect)
-      }
-    }).catch((e)=>console.log(e))
-    vm.getUsername()
+    if(this.$route.query.redirect){
+      await vm.$store.commit('signIn')
+      this.$router.push(this.$route.query.redirect)
+    }
+    vm.signIn()
   }
 }
 </script>

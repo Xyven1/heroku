@@ -71,10 +71,14 @@ export default {
       localStorage.darkMode=vm.$vuetify.theme.dark
     },
   },
-  mounted(){
+  async mounted(){
     var vm = this
-    if(localStorage.darkMode)
-      vm.$vuetify.theme.dark = localStorage.darkMode == "true"
+    await vm.$auth.then(async auth => {
+      if(auth.isSignedIn.get())
+        await vm.$database.getUser().then(data=> vm.$vuetify.theme.dark = data.darkMode)
+      else if(localStorage.darkMode)
+        vm.$vuetify.theme.dark = localStorage.darkMode == "true"
+    })
   },
 }
 </script>

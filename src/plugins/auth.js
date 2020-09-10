@@ -31,6 +31,6 @@ function getAuth(params){
 export default {
   install: function install(Vue, params) {
     createScript()
-    Vue.GoogleAuth = getAuth(params);
+    Vue.prototype.$auth = getAuth(params)
   }
 }

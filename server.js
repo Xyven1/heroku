@@ -11,6 +11,9 @@ const app = express()
 app.use(express.static('dist'))
 app.use(bodyParser.json())
 
+//get database columns
+const dbCols = ["username", "darkmode"]
+
 //authentication middleware
 app.use('/database', async (req, res, next) => {
 	await client.verifyIdToken({
@@ -28,10 +31,26 @@ app.use('/database', async (req, res, next) => {
 
 //database config
 app.post('/database/user', async (req, res) => {
-	console.log("updated or added username")
-	await db.none('INSERT INTO users(userid, username) VALUES(${userid}, ${username}) ON CONFLICT (userid) DO UPDATE SET username = EXCLUDED.username', {userid: res.locals.userid, username: req.body.username})
-	.then(()=>res.send({code: 0}))
-	.catch(e=>{
+	delete req.body.idtoken
+	if (Object.keys(req.body).filter(k=>dbCols.includes(k)).length == 0){
+		await db.none('INSERT INTO users(userid) VALUES(${userid}) ON CONFLICT (userid) DO NOTHING', {
+			userid: res.locals.userid
+		}).then(()=>{
+			res.send({code: 0})
+		}).catch(e=>{
+			res.send(e)
+			console.log(e)
+		})
+		return
+	}
+	console.log("updated or added user")
+	const valid = Object.keys(req.body).filter(key => dbCols.includes(key)).reduce((obj, key)=>{obj[key] = req.body[key]; return obj}, {})
+	const params = Object.assign({userid: res.locals.userid}, valid)
+	await db.none(`INSERT INTO users(${Object.keys(params).join(',')}) VALUES(${Object.keys(params).map(k=> '$('+ k + ')').join(',')}) ON CONFLICT (userid) DO UPDATE SET ${Object.keys(valid).map(k=> k + '=EXCLUDED.'+ k).join(',')}`, 
+		params
+	).then(()=>{
+		res.send({code: 0})
+	}).catch(e=>{
 		res.send(e)
 		console.log(e)
 	})

@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <v-btn :color="color" dark @click="signIn" v-if="!loading && !$store.state.isSignedIn">
+  <div v-if="!loading">
+    <v-btn :color="color" dark @click="signIn" v-if="!$store.state.isSignedIn">
       <v-icon v-if="icons">mdi-login</v-icon>
       Sign in
     </v-btn>
-    <v-btn :color="color" dark @click="signOut" v-if="!loading && $store.state.isSignedIn">
+    <v-btn :color="color" dark @click="signOut" v-if="$store.state.isSignedIn">
       <v-icon v-if="icons">mdi-logout</v-icon>
       Logout
     </v-btn>
@@ -30,19 +30,13 @@ export default {
   methods: {
     async signIn(){
       var vm = this
-      await vm.$auth.then(async auth =>{
-        await auth.signIn()
-        await vm.$store.commit('signIn')
-        vm.onSignIn()
-      })
+      await vm.$store.commit('signIn')
+      vm.onSignIn()
     },
     async signOut(){
       var vm = this
-      await vm.$auth.then(async auth =>{
-        await auth.signOut()
-        await vm.$store.commit('signOut')
-        vm.onSignOut ? vm.onSignOut() : vm.$router.push('/login')
-      })
+      await vm.$store.commit('signOut')
+      vm.onSignOut ? vm.onSignOut() : vm.$router.push('/login')
     },
   },
   async mounted(){
