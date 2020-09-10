@@ -48,7 +48,10 @@ export default {
       this.username=this.$store.state.username
     },
     signOut(){
-      this.username=''
+      var vm = this
+      vm.username = ''
+      vm.error = null
+      vm.success = null
     },
     async submit(){
       var vm = this
@@ -74,7 +77,9 @@ export default {
       await vm.$store.commit('signIn')
       this.$router.push(this.$route.query.redirect)
     }
-    vm.signIn()
+    await vm.$database.getUser().then(res=>{
+      vm.username = res.username
+    })
   }
 }
 </script>
