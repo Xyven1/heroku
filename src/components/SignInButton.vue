@@ -30,7 +30,9 @@ export default {
   methods: {
     async signIn(){
       var vm = this
+      console.log("singIn() from SignInButton.vue")
       await vm.$store.commit('signIn')
+      console.log("after await in SignInButton.vue")
       vm.onSignIn()
     },
     async signOut(){
