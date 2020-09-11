@@ -3,7 +3,7 @@ var localAuth;
 var database = {
   getUser: function () {
     return new Promise((resolve, reject) => {
-      console.log("tried to get user")
+      console.log("Tried to get user")
       localAuth.then(auth=>{
         axios.get('/database/user', {
           params: {

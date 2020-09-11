@@ -41,7 +41,6 @@ const store = new Vuex.Store({
         if(!auth.isSignedIn.get()) await auth.signIn()
         await Vue.prototype.$database.getUser().then(res=>{
           newState.username = res.username
-          console.log("set username in signIn() main")
         }).catch(e=>console.error(e))
         newState.googleProfile = auth.currentUser.get().getBasicProfile()
         newState.isSignedIn=true
