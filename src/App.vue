@@ -76,8 +76,10 @@ export default {
     await vm.$auth.then(async auth => {
       if(auth.isSignedIn.get()){
         console.log("user is signed in")
-        await vm.$database.getUser().then(data=> vm.$vuetify.theme.dark = data.darkMode)
-        console.log("attempted to change theme")
+        await vm.$database.getUser().then(data=>{
+          vm.$vuetify.theme.dark = data.darkMode
+          console.log("attempted to change theme", data)
+        })
       }
       else if(localStorage.darkMode)
         vm.$vuetify.theme.dark = localStorage.darkMode == "true"
