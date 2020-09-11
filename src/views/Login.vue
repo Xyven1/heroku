@@ -45,6 +45,7 @@ export default {
   },
   methods: {
     signIn(){
+      console.log("signIn() from login.vue")
       this.username=this.$store.state.username
     },
     signOut(){
