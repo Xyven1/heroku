@@ -70,7 +70,7 @@ export default {
       vm.$vuetify.theme.dark = !vm.$vuetify.theme.dark
       vm.$auth.then(auth => {
         if(auth.isSignedIn.get())
-          vm.$database.updateUser({darkmode: vm.$vuetify.theme})
+          vm.$database.updateUser({darkmode: vm.$vuetify.theme.dark})
       })
       localStorage.darkMode = vm.$vuetify.theme.dark
     },
