@@ -25,22 +25,32 @@ const store = new Vuex.Store({
     username: null
   },
   mutations: {
-    async signIn(state){
+    async signIn(state, newState){
+      Object.assign(state, newState)
+    },
+    async signOut(state){
+      state.isSignedIn = false
+      state.googleProfile = null
+      state.username = null
+    }
+  },
+  actions: {
+    async signIn({commit}){
+      var newState = {}
       await Vue.prototype.$auth.then(async auth => {
         if(!auth.isSignedIn.get()) await auth.signIn()
         await Vue.prototype.$database.getUser().then(res=>{
-          state.username = res.username
+          newState.username = res.username
           console.log("set username in signIn() main")
         }).catch(e=>console.error(e))
-        state.googleProfile = auth.currentUser.get().getBasicProfile()
-        state.isSignedIn=true
+        newState.googleProfile = auth.currentUser.get().getBasicProfile()
+        newState.isSignedIn=true
       })
+      commit('signIn', newState)
     },
-    async signOut(state){
+    async signOut({commit}){
+      commit('signOut')
       await Vue.prototype.$auth.then(async auth =>{
-        state.isSignedIn = false
-        state.googleProfile = null
-        state.username = null
         await auth.signOut()
       })
     }
@@ -50,7 +60,7 @@ const store = new Vuex.Store({
 //Initialize isSignedIn property 
 Vue.prototype.$auth.then(async auth => {
   if(auth.isSignedIn.get())
-   await store.commit('signIn')
+   await store.dispatch('signIn')
 })
 //define function to run when path requires authentication
 const ifAuthenticated = async (to, from, next) => {

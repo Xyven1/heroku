@@ -31,13 +31,13 @@ export default {
     async signIn(){
       var vm = this
       console.log("singIn() from SignInButton.vue")
-      await vm.$store.commit('signIn')
+      await vm.$store.dispatch('signIn')
       console.log("after await in SignInButton.vue")
       vm.onSignIn()
     },
     async signOut(){
       var vm = this
-      await vm.$store.commit('signOut')
+      await vm.$store.dispatch('signOut')
       vm.onSignOut ? vm.onSignOut() : vm.$router.push('/login')
     },
   },

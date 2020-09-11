@@ -75,7 +75,7 @@ export default {
   async mounted(){
     var vm = this
     if(this.$route.query.redirect){
-      await vm.$store.commit('signIn')
+      await vm.$store.dispatch('signIn')
       this.$router.push(this.$route.query.redirect)
     }
     await vm.$database.getUser().then(res=>{
