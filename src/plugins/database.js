@@ -19,7 +19,7 @@ var database = {
   },
   updateUser: function (params) {
     return new Promise((resolve, reject) => {
-      console.log("Tried to set username")
+      console.log("Tried to update " + Object.keys(params).join(', '))
       localAuth.then(auth=>{
         axios.post('/database/user', Object.assign({idtoken: auth.currentUser.get().getAuthResponse().id_token}, params)
         ).then(res=>{
