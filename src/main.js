@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
+import VueRouter from 'vue-router'
 import App from './App.vue'
 import vuetify from './plugins/vuetify'
 import auth from './plugins/auth'
 import database from './plugins/database'
-import axios from 'axios'
-import VueRouter from 'vue-router'
 
 Vue.config.productionTip = false
 
@@ -39,8 +39,10 @@ const store = new Vuex.Store({
       var newState = {}
       await Vue.prototype.$auth.then(async auth => {
         if(!auth.isSignedIn.get()) await auth.signIn()
+        Vue.prototype.$database.updateUser()
         await Vue.prototype.$database.getUser().then(res=>{
           newState.username = res.username
+          console.log("set username in signIn() main")
         }).catch(e=>console.error(e))
         newState.googleProfile = auth.currentUser.get().getBasicProfile()
         newState.isSignedIn=true

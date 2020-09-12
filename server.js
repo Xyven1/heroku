@@ -32,21 +32,20 @@ app.use('/database', async (req, res, next) => {
 //database config
 app.post('/database/user', async (req, res) => {
 	delete req.body.idtoken
-	if (Object.keys(req.body).filter(k=>dbCols.includes(k)).length == 0){
-		await db.none('INSERT INTO users(userid) VALUES(${userid}) ON CONFLICT (userid) DO NOTHING', {
+	if (Object.keys(req.body).filter(k=>dbCols.includes(k)).length == 0){ //if no data is specified, try to initialize user
+		await db.none('INSERT INTO users(userid) VALUES($(userid)) ON CONFLICT (userid) DO NOTHING', {
 			userid: res.locals.userid
 		}).then(()=>{
 			res.send({code: 0})
 		}).catch(e=>{
 			res.send(e)
-			console.log(e)
+			console.error(e)
 		})
 		return
 	}
 	console.log("updated or added user")
 	const valid = Object.keys(req.body).filter(key => dbCols.includes(key)).reduce((obj, key)=>{obj[key] = req.body[key]; return obj}, {})
 	const params = Object.assign({userid: res.locals.userid}, valid)
-	console.log(`INSERT INTO users(${Object.keys(params).join(',')}) VALUES(${Object.keys(params).map(k=> '$('+ k + ')').join(',')}) ON CONFLICT (userid) DO UPDATE SET ${Object.keys(valid).map(k=> k + '=EXCLUDED.'+ k).join(',')}`)
 	await db.none(`INSERT INTO users(${Object.keys(params).join(',')}) VALUES(${Object.keys(params).map(k=> '$('+ k + ')').join(',')}) ON CONFLICT (userid) DO UPDATE SET ${Object.keys(valid).map(k=> k + '=EXCLUDED.'+ k).join(',')}`, 
 		params
 	).then(()=>{
@@ -57,7 +56,7 @@ app.post('/database/user', async (req, res) => {
 	})
 })
 app.get('/database/user', async (req, res) => {
-	console.log("retrieved username")
+	console.log("retrieved user")
 	await db.one('SELECT * FROM users WHERE userid = ${userid}', {userid: res.locals.userid})
 	.then((result)=>{
 		console.log(result)
