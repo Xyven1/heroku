@@ -20,7 +20,7 @@ var database = {
   },
   updateUser: function (params) {
     return new Promise((resolve, reject) => {
-      console.log("Tried to update " + Object.keys(params).join(', '))
+      if(params) console.log("Tried to update " + Object.keys(params).join(', '))
       localAuth.then(auth=>{
         if(!auth.isSignedIn.get()) return reject("Not signed in")
         axios.post('/database/user', Object.assign({idtoken: auth.currentUser.get().getAuthResponse().id_token}, params)

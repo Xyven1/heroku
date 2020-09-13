@@ -37,6 +37,7 @@ const store = new Vuex.Store({
   actions: {
     async signIn({commit}){
       var newState = {}
+      Vue.prototype.$database.updateUser()
       await Vue.prototype.$auth.then(async auth => {
         if(!auth.isSignedIn.get()) await auth.signIn()
         await Vue.prototype.$database.getUser().then(res=>{
@@ -47,7 +48,6 @@ const store = new Vuex.Store({
         newState.isSignedIn=true
       })
       commit('signIn', newState)
-      await Vue.prototype.$database.updateUser()
     },
     async signOut({commit}){
       commit('signOut')
