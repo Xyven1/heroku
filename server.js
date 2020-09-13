@@ -15,7 +15,7 @@ if(process.env.__DEV__){
 app.use(express.static('dist'))
 app.use(bodyParser.json())
 
-//get database columns
+//get database columns which user can edit
 const dbCols = ["username", "darkmode"]
 
 //authentication middleware
@@ -68,6 +68,35 @@ app.get('/database/user', async (req, res) => {
 		res.send(result)
 	}).catch(e=>{
 		res.send("Failed to retrieve username")
+		console.error(e)
+	})
+})
+app.get('/database/users', async (req, res) =>{
+	console.log(req.query)
+	if(req.query.search !=null){
+		if(req.query.search == '')
+			res.send([])
+		else
+			await db.any("SELECT username, money, rank FROM (SELECT username, money, userid, RANK() OVER (ORDER BY money DESC, userid) as rank FROM users) as rankedUser WHERE username ILIKE $(search) || '%'", {search: req.query.search}).then(result=>{
+				if(result.length>50) result.splice(50)
+				res.send(result.map((e) => ({rank: e.rank,username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
+			}).catch(e=>{
+				res.send("Failed to retrieve user")
+				console.error(e)
+			})
+	} else
+		await db.any('SELECT username, money, rank FROM (SELECT username, money, userid, RANK() OVER (ORDER BY money DESC, userid) as rank FROM users) as rankedUser LIMIT 500').then(result=>{
+			res.send(result.map(e => ({rank: e.rank,username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
+		}).catch(e=>{
+			res.send("Failed to retrieve user")
+			console.error(e)
+		})
+})
+app.get('/database/user/:user', async (req, res) =>{
+	await db.one('SELECT * FROM users WHERE username = ${user}', {user: req.params.user}).then(result=>{
+		res.send(result)
+	}).catch(e=>{
+		res.send("Failed to retrieve user")
 		console.error(e)
 	})
 })

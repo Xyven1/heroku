@@ -2,7 +2,7 @@
   <v-app id="app">
     <v-app-bar app dense>
       <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
-      <v-toolbar-title>Testing site</v-toolbar-title>
+      <v-toolbar-title>{{$store.state.money ? '$' + Number.parseFloat($store.state.money).toFixed(2) : null}}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn to="/login" elevation="0">
         <v-list-item-content class="pr-2">
@@ -61,9 +61,11 @@ export default {
       navigationItems: [
         { title: 'Home', href:'/', icon: 'mdi-home'},
         { title: 'Testing tab', href:'/test', icon: 'mdi-test-tube' },
+        { title: 'Leaderboard', href:'/leaderboard', icon: 'mdi-podium' },
       ],
-      drawer: false
-    };
+      drawer: false,
+      money: null,
+    }
   },methods:{
     darkMode(){
       var vm = this
@@ -74,6 +76,9 @@ export default {
   },
   async mounted(){
     var vm = this
+    vm.$database.getUser().then(res=>{
+      vm.money = res.money
+    })
     await vm.$auth.then(async auth => {
       if(auth.isSignedIn.get()){
         await vm.$database.getUser().then(data=>{

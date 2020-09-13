@@ -20,21 +20,27 @@ Vue.use(database, Vue.prototype.$auth)
 Vue.prototype.$axios = axios
 
 //global storage for profile data and whether or not the user is signed in
-const store = new Vuex.Store({
-  state: {
+function initialState(){
+  return {
     isSignedIn: false,
     googleProfile: null,
-    username: null
-  },
+    username: null, 
+    money: null,
+  }
+}
+const store = new Vuex.Store({
+  state: initialState,
   mutations: {
     async signIn(state, newState){
-      Object.assign(state, newState)
+      Object.keys(newState).forEach(key => {
+        state[key] = newState[key]
+      })
     },
     async signOut(state){
-      state.isSignedIn = false
-      state.googleProfile = null
-      state.username = null
-    }
+      Object.keys(initialState()).forEach(key => {
+        state[key] = initialState()[key]
+      })
+    },
   },
   actions: {
     async signIn({commit}){
@@ -44,7 +50,7 @@ const store = new Vuex.Store({
         Vue.prototype.$database.updateUser()
         await Vue.prototype.$database.getUser().then(res=>{
           newState.username = res.username
-          console.log("set username in signIn() main")
+          newState.money = res.money
         }).catch(e=>console.error(e))
         newState.googleProfile = auth.currentUser.get().getBasicProfile()
         newState.isSignedIn=true
@@ -68,7 +74,6 @@ Vue.prototype.$auth.then(async auth => {
 //define function to run when path requires authentication
 const ifAuthenticated = async (to, from, next) => {
   Vue.prototype.$auth.then(auth=>{
-    console.log(auth.isSignedIn.get())
     if (auth.isSignedIn.get()) {
       next()
       return
