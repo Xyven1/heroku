@@ -39,7 +39,6 @@ const store = new Vuex.Store({
       var newState = {}
       await Vue.prototype.$auth.then(async auth => {
         if(!auth.isSignedIn.get()) await auth.signIn()
-        Vue.prototype.$database.updateUser().then(()=>{}).catch(()=>{})
         await Vue.prototype.$database.getUser().then(res=>{
           newState.username = res.username
           console.log("set username in signIn() main")
@@ -48,6 +47,7 @@ const store = new Vuex.Store({
         newState.isSignedIn=true
       })
       commit('signIn', newState)
+      await Vue.prototype.$database.updateUser()
     },
     async signOut({commit}){
       commit('signOut')
