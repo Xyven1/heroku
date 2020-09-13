@@ -4,7 +4,7 @@
       <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
       <v-toolbar-title>{{$store.state.money ? '$' + Number.parseFloat($store.state.money).toFixed(2) : null}}</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn to="/login" elevation="0">
+      <v-btn :to="$store.state.isSignedIn ? '/profile' : null" @click="()=>{if(!$store.state.isSignedIn) $store.dispatch('signIn')}" elevation="0">
         <v-list-item-content class="pr-2">
           {{$store.state.isSignedIn ? $store.state.username || $store.state.googleProfile.getName() : "Login"}}
         </v-list-item-content>
@@ -15,15 +15,10 @@
         </v-avatar>
       </v-btn>
       <v-menu offset-y transition="slide-y-transition" :close-on-content-click="false">
-        <template v-slot:activator="{ on: menu, attrs }">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on: tooltip }">
-              <v-btn icon v-bind="attrs" v-on="{ ...tooltip, ...menu }">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
-            <span>Settings</span>
-          </v-tooltip>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
         </template>
         <v-card>
           <div class="pa-2">
@@ -64,30 +59,14 @@ export default {
         { title: 'Leaderboard', href:'/leaderboard', icon: 'mdi-podium' },
       ],
       drawer: false,
-      money: null,
     }
   },methods:{
     darkMode(){
       var vm = this
-      vm.$vuetify.theme.dark = !vm.$vuetify.theme.dark
-      vm.$database.updateUser({darkmode: vm.$vuetify.theme.dark})
-      localStorage.darkMode = vm.$vuetify.theme.dark
+      vm.$vuetify.theme.dark = !vm.$vuetify.theme.dark //update the website theme
+      vm.$database.updateUser({darkmode: vm.$vuetify.theme.dark}) //update the database theme
+      localStorage.darkMode = vm.$vuetify.theme.dark //update the local theme
     },
-  },
-  async mounted(){
-    var vm = this
-    vm.$database.getUser().then(res=>{
-      vm.money = res.money
-    })
-    await vm.$auth.then(async auth => {
-      if(auth.isSignedIn.get()){
-        await vm.$database.getUser().then(data=>{
-          vm.$vuetify.theme.dark = data.darkmode
-        })
-      }
-      else if(localStorage.darkMode)
-        vm.$vuetify.theme.dark = localStorage.darkMode == "true"
-    })
   },
 }
 </script>

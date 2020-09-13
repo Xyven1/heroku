@@ -14,11 +14,11 @@ var database = {
       })
     })
   },
-  getUser: function () {
+  getUser: function (user) {
     return new Promise((resolve, reject) => {
       localAuth.then(auth=>{
         if(!auth.isSignedIn.get()) return reject("Not signed in")
-        axios.get('/database/user', {
+        axios.get('/database/user' + (user ? '/' + user : ''), {
           params: {
             idtoken: auth.currentUser.get().getAuthResponse().id_token
           }
@@ -46,25 +46,8 @@ var database = {
         })
       })
     })
-  },
-  getOtherUser: function (user) {
-    return new Promise((resolve, reject) => {
-      localAuth.then(auth=>{
-        if(!auth.isSignedIn.get()) return reject("Not signed in")
-        axios.get('/database/user/'+user, {
-          params: {
-            idtoken: auth.currentUser.get().getAuthResponse().id_token
-          }
-        }).then(res=>{
-          resolve(res.data) 
-        }).catch((e)=>{
-          reject(e)
-        })
-      })
-    })
   }
 }
-
 
 export default {
   install: async function install(Vue, auth) {

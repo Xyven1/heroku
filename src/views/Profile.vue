@@ -3,7 +3,6 @@
     <v-row>
       <v-col>
         <v-card class="ma-2" :elevation="5" v-if="$store.state.isSignedIn">
-          <div class="overline mt-2 ml-2">ACCOUNT INFO</div>
           <v-list-item>
             <v-list-item-avatar size="80" class="ma-2"><v-img :src="$store.state.googleProfile.getImageUrl()" :height="80" :width="80"/></v-list-item-avatar>
             <v-list-item-content>
@@ -15,15 +14,16 @@
             <v-text-field label="Public Username" counter="20" v-model="username" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null"/>
             <v-btn @click="submit">Submit</v-btn>
           </v-list-item>
+          <v-btn color="primary" @click="signOut" class="ma-2">
+            <v-icon>mdi-logout</v-icon> Logout
+          </v-btn>
         </v-card>
-        <sign-in-button ref="SignIn" class="ma-2" color="primary" :dark="true" :onSignIn="signIn" :onSignOut="signOut"/>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import SignInButton from '../components/SignInButton.vue';
 export default {
   data (){
     return {
@@ -38,20 +38,11 @@ export default {
       ],
     }
   },
-  components: {
-    SignInButton
-  },
-  computed: {
-  },
   methods: {
-    signIn(){
-      this.username=this.$store.state.username
-    },
-    signOut(){
+    async signOut(){
       var vm = this
-      vm.username = ''
-      vm.error = null
-      vm.success = null
+      await vm.$store.dispatch('signOut')
+      vm.$router.push('/')
     },
     async submit(){
       var vm = this
@@ -73,10 +64,6 @@ export default {
   },
   async mounted(){
     var vm = this
-    if(this.$route.query.redirect){
-      await vm.$store.dispatch('signIn')
-      this.$router.push(this.$route.query.redirect)
-    }
     await vm.$database.getUser().then(res=>{
       vm.username = res.username
     })

@@ -18,7 +18,6 @@ Vue.use(auth, {
 })
 Vue.use(database, Vue.prototype.$auth)
 Vue.prototype.$axios = axios
-
 //global storage for profile data and whether or not the user is signed in
 function initialState(){
   return {
@@ -46,11 +45,14 @@ const store = new Vuex.Store({
     async signIn({commit}){
       var newState = {}
       await Vue.prototype.$auth.then(async auth => {
-        if(!auth.isSignedIn.get()) await auth.signIn()
+        if(!auth.isSignedIn.get()) await auth.signIn().catch(()=>{}) //if not signed in try to sign in
+        if(!auth.isSignedIn.get()) return //if user STILL not signed in after sign in attempt, break function
         Vue.prototype.$database.updateUser()
         await Vue.prototype.$database.getUser().then(res=>{
           newState.username = res.username
           newState.money = res.money
+          localStorage.darkMode = res.darkmode
+          vuetify.framework.theme.dark = res.darkmode
         }).catch(e=>console.error(e))
         newState.googleProfile = auth.currentUser.get().getBasicProfile()
         newState.isSignedIn=true
@@ -73,12 +75,13 @@ Vue.prototype.$auth.then(async auth => {
 })
 //define function to run when path requires authentication
 const ifAuthenticated = async (to, from, next) => {
-  Vue.prototype.$auth.then(auth=>{
-    if (auth.isSignedIn.get()) {
+  Vue.prototype.$auth.then(async auth=>{
+    if (!auth.isSignedIn.get())
+      await store.dispatch('signIn')
+    if (auth.isSignedIn.get()){
       next()
       return
     }
-    next({ path: '/login?redirect=' + to.path })
   })
 }
 //automatically maps all components in pages folder to routes
@@ -90,7 +93,6 @@ req.keys().map(key => {
   routes.push(
     ({ //switch expression 
       Home: {path: '/', component: component},
-      Login: {path: '/'+name, component: component},
     })[name]
     || {path: '/'+name, component: component, beforeEnter: ifAuthenticated} //default case
   )
