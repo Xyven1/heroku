@@ -33,6 +33,7 @@ app.use('/database', async (req, res, next) => {
 app.post('/database/user', async (req, res) => {
 	delete req.body.idtoken
 	if (Object.keys(req.body).filter(k=>dbCols.includes(k)).length == 0){ //if no data is specified, try to initialize user
+		console.log("Post with no data specified")
 		await db.none('INSERT INTO users(userid) VALUES($(userid)) ON CONFLICT (userid) DO NOTHING', {
 			userid: res.locals.userid
 		}).then(()=>{
@@ -56,7 +57,7 @@ app.post('/database/user', async (req, res) => {
 	})
 })
 app.get('/database/user', async (req, res) => {
-	console.log("retrieved user")
+	console.log("Retrieved user")
 	await db.one('SELECT * FROM users WHERE userid = ${userid}', {userid: res.locals.userid})
 	.then((result)=>{
 		console.log(result)
