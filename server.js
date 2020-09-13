@@ -1,13 +1,17 @@
 const express = require('express')
 var bodyParser = require('body-parser')
+const cors = require('cors')
 const path = require('path')
 const {OAuth2Client} = require('google-auth-library')
 const client = new OAuth2Client('***REMOVED***')
 const pgp = require('pg-promise')()
-const db = pgp(process.env.DATABASE_URL || '***REMOVED***')
-
+const db = pgp(process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postgres')
 const app = express()
 //here we are configuring dist to serve app files
+if(process.env.__DEV__){
+	console.log("Running in developement environment")
+	app.use(cors())	
+}
 app.use(express.static('dist'))
 app.use(bodyParser.json())
 

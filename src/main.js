@@ -8,6 +8,8 @@ import auth from './plugins/auth'
 import database from './plugins/database'
 
 Vue.config.productionTip = false
+if(process.env.NODE_ENV == "development") 
+  axios.defaults.baseURL = 'http://localhost:3000'
 
 Vue.use(VueRouter)
 Vue.use(Vuex)
