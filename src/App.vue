@@ -64,7 +64,7 @@ export default {
     darkMode(){
       var vm = this
       vm.$vuetify.theme.dark = !vm.$vuetify.theme.dark //update the website theme
-      vm.$database.updateUser({darkmode: vm.$vuetify.theme.dark}) //update the database theme
+      vm.$axios.post('/database/user', {darkmode: vm.$vuetify.theme.dark})
       localStorage.darkMode = vm.$vuetify.theme.dark //update the local theme
     },
   },

@@ -5,7 +5,6 @@ import VueRouter from 'vue-router'
 import App from './App.vue'
 import vuetify from './plugins/vuetify'
 import auth from './plugins/auth'
-import database from './plugins/database'
 
 Vue.config.productionTip = false
 if(process.env.NODE_ENV == "development") 
@@ -16,8 +15,8 @@ Vue.use(Vuex)
 Vue.use(auth, {
   client_id: '***REMOVED***'
 })
-Vue.use(database, Vue.prototype.$auth)
 Vue.prototype.$axios = axios
+
 //global storage for profile data and whether or not the user is signed in
 function initialState(){
   return {
@@ -47,12 +46,13 @@ const store = new Vuex.Store({
       await Vue.prototype.$auth.then(async auth => {
         if(!auth.isSignedIn.get()) await auth.signIn().catch(()=>{}) //if not signed in try to sign in
         if(!auth.isSignedIn.get()) return //if user STILL not signed in after sign in attempt, break function
-        Vue.prototype.$database.updateUser()
-        await Vue.prototype.$database.getUser().then(res=>{
-          newState.username = res.username
-          newState.money = res.money
-          localStorage.darkMode = res.darkmode
-          vuetify.framework.theme.dark = res.darkmode
+        Vue.prototype.$axios.defaults.headers.common['Authorization'] = auth.currentUser.get().getAuthResponse().id_token
+        Vue.prototype.$axios.post('/database/user')
+        await Vue.prototype.$axios.get('/database/user').then(res=>{
+          newState.username = res.data.username
+          newState.money = res.data.money
+          localStorage.darkMode = res.data.darkmode
+          vuetify.framework.theme.dark = res.data.darkmode
         }).catch(e=>console.error(e))
         newState.googleProfile = auth.currentUser.get().getBasicProfile()
         newState.isSignedIn=true
@@ -61,6 +61,7 @@ const store = new Vuex.Store({
     },
     async signOut({commit}){
       commit('signOut')
+      Vue.prototype.$axios.defaults.headers.common['Authorization'] = null
       await Vue.prototype.$auth.then(async auth =>{
         await auth.signOut()
       })
@@ -78,10 +79,10 @@ const ifAuthenticated = async (to, from, next) => {
   Vue.prototype.$auth.then(async auth=>{
     if (!auth.isSignedIn.get())
       await store.dispatch('signIn')
-    if (auth.isSignedIn.get()){
-      next()
-      return
-    }
+    if (auth.isSignedIn.get())
+      return next()
+    else
+      return next('/')
   })
 }
 //automatically maps all components in pages folder to routes

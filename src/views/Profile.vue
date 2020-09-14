@@ -48,7 +48,7 @@ export default {
       var vm = this
       if(vm.username == '' || vm.username.length<3 || vm.username.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.username))
         return
-      vm.$database.updateUser({username: vm.username})
+      vm.$axios.post('/database/user', {username: vm.username})
       .then(res=>{
         console.log(res)
         if(res.data.code == 0){
@@ -64,8 +64,8 @@ export default {
   },
   async mounted(){
     var vm = this
-    await vm.$database.getUser().then(res=>{
-      vm.username = res.username
+    await vm.$axios.get('/database/user').then(res=>{
+      vm.username = res.data.username
     })
   }
 }

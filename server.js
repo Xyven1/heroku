@@ -3,6 +3,7 @@ var bodyParser = require('body-parser')
 const cors = require('cors')
 const path = require('path')
 const {OAuth2Client} = require('google-auth-library')
+const e = require('express')
 const client = new OAuth2Client('***REMOVED***')
 const pgp = require('pg-promise')()
 const db = pgp(process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postgres')
@@ -21,7 +22,7 @@ const dbCols = ["username", "darkmode"]
 //authentication middleware
 app.use('/database', async (req, res, next) => {
 	await client.verifyIdToken({
-		idToken: req.body.idtoken || req.query.idtoken,
+		idToken: req.headers.authorization,
 		audience: '***REMOVED***',
 	}).then((googleusercontent)=>{
 		res.locals.userid = googleusercontent.payload.sub
@@ -36,23 +37,12 @@ app.use('/database', async (req, res, next) => {
 //database config
 app.post('/database/user', async (req, res) => {
 	delete req.body.idtoken
-	if (Object.keys(req.body).filter(k=>dbCols.includes(k)).length == 0){ //if no data is specified, try to initialize user
-		console.log("Post with no data specified")
-		await db.none('INSERT INTO users(userid) VALUES($(userid)) ON CONFLICT (userid) DO NOTHING', {
-			userid: res.locals.userid
-		}).then(()=>{
-			res.send({code: 0})
-		}).catch(e=>{
-			res.send(e)
-			console.error(e)
-		})
-		return
-	}
-	console.log("updated or added user")
-	const valid = Object.keys(req.body).filter(key => dbCols.includes(key)).reduce((obj, key)=>{obj[key] = req.body[key]; return obj}, {})
-	const params = Object.assign({userid: res.locals.userid}, valid)
-	await db.none(`INSERT INTO users(${Object.keys(params).join(',')}) VALUES(${Object.keys(params).map(k=> '$('+ k + ')').join(',')}) ON CONFLICT (userid) DO UPDATE SET ${Object.keys(valid).map(k=> k + '=EXCLUDED.'+ k).join(',')}`, 
-		params
+	const valid = Object.keys(req.body).filter(key => dbCols.includes(key))
+	var query = valid.length>0
+		? `UPDATE users SET ${valid.map(k=> k + '='+ '$(' + k + ')').join(',')} WHERE userid = $(userid)`
+		: 'INSERT INTO users(userid) VALUES($(userid)) ON CONFLICT (userid) DO NOTHING'
+	await db.none(query, 
+		valid.reduce((obj, key)=>{obj[key] = req.body[key]; return obj}, {userid: res.locals.userid})
 	).then(()=>{
 		res.send({code: 0})
 	}).catch(e=>{
@@ -62,8 +52,10 @@ app.post('/database/user', async (req, res) => {
 })
 app.get('/database/user', async (req, res) => {
 	console.log("Retrieved user")
-	await db.one('SELECT * FROM users WHERE userid = ${userid}', {userid: res.locals.userid})
-	.then((result)=>{
+	const query = req.query.username == null 
+		? 'SELECT * FROM users WHERE userid = $(userid)'
+		: 'SELECT * FROM users WHERE username = $(username)'
+	await db.one(query, {userid: res.locals.userid, username: req.query.username}).then((result)=>{
 		console.log(result)
 		res.send(result)
 	}).catch(e=>{
@@ -73,28 +65,13 @@ app.get('/database/user', async (req, res) => {
 })
 app.get('/database/users', async (req, res) =>{
 	console.log(req.query)
-	if(req.query.search !=null){
-		if(req.query.search == '')
-			res.send([])
-		else
-			await db.any("SELECT username, money, rank FROM (SELECT username, money, userid, RANK() OVER (ORDER BY money DESC, userid) as rank FROM users) as rankedUser WHERE username ILIKE $(search) || '%'", {search: req.query.search}).then(result=>{
-				if(result.length>50) result.splice(50)
-				res.send(result.map((e) => ({rank: e.rank,username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
-			}).catch(e=>{
-				res.send("Failed to retrieve user")
-				console.error(e)
-			})
-	} else
-		await db.any('SELECT username, money, rank FROM (SELECT username, money, userid, RANK() OVER (ORDER BY money DESC, userid) as rank FROM users) as rankedUser LIMIT 500').then(result=>{
-			res.send(result.map(e => ({rank: e.rank,username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
-		}).catch(e=>{
-			res.send("Failed to retrieve user")
-			console.error(e)
-		})
-})
-app.get('/database/user/:user', async (req, res) =>{
-	await db.one('SELECT * FROM users WHERE username = ${user}', {user: req.params.user}).then(result=>{
-		res.send(result)
+	const query = `SELECT username, money, rank FROM 
+									(SELECT username, money, created, RANK() OVER (ORDER BY money DESC, created) as rank FROM users) as rankedUser
+									${req.query.search == null ? "LIMIT 500" : "WHERE username ILIKE $(search) || '%'" }`
+	if(req.query.search == '')
+		return res.send([])
+	await db.any(query, {search: req.query.search}).then(result=>{
+		res.send(result.map(e => ({rank: e.rank,username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
 	}).catch(e=>{
 		res.send("Failed to retrieve user")
 		console.error(e)

@@ -34,7 +34,7 @@ export default {
     async searchUsers(){
       var vm = this
       vm.results = null
-      await vm.$database.getUsers(vm.search ? vm.search : null).then(res=>vm.results=res)
+      await vm.$axios.get('/database/users', vm.search ? {params: {search: vm.search}} : null).then(res=>vm.results=res.data)
     }
   },
   async mounted(){
