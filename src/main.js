@@ -77,9 +77,10 @@ const store = new Vuex.Store({
     }
   }
 })
+console.log(process.env.HOST)
 Vue.use(new VueSocketIO({
   debug: true,
-  connection: process.env.NODE_ENV == "development" ? 'http://localhost:3000' : process.env.HOST,
+  connection: process.env.NODE_ENV == "development" ? 'http://localhost:3000' : 'https://website-10.herokuapp.com',
   vuex: {
     store,
     actionPrefix: "SOCKET_",
