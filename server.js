@@ -135,5 +135,5 @@ server.listen(port, () =>{
 })
 
 setInterval(async ()=>{
-	await db.none('UPDATE users SET money = money+1').catch(()=>{})
-}, 1000)
+	await db.none('UPDATE users SET money = money+1000').catch(()=>{})
+}, 3600000)
