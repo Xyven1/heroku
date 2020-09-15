@@ -26,7 +26,7 @@ app.use(bodyParser.json())
 const dbCols = ["username", "darkmode"]
 
 //authentication middleware
-app.use('/database', async (req, res, next) => {
+app.use('/database/user', async (req, res, next) => {
 	await client.verifyIdToken({
 		idToken: req.headers.authorization,
 		audience: '***REMOVED***',

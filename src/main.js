@@ -77,9 +77,8 @@ const store = new Vuex.Store({
     }
   }
 })
-console.log(process.env.HOST)
 Vue.use(new VueSocketIO({
-  debug: true,
+  debug: process.env.NODE_ENV == "development",
   connection: process.env.NODE_ENV == "development" ? 'http://localhost:3000' : 'https://website-10.herokuapp.com',
   vuex: {
     store,
@@ -112,6 +111,7 @@ req.keys().map(key => {
   routes.push(
     ({ //switch expression 
       Home: {path: '/', component: component},
+      Leaderboard: {path: '/'+name, component: component},
     })[name]
     || {path: '/'+name, component: component, beforeEnter: ifAuthenticated} //default case
   )
