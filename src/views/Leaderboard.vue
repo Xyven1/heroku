@@ -4,12 +4,15 @@
       <v-col class="fill-height d-flex flex-column">
         <v-row class="shrink"> 
           <v-col>
-            <v-text-field label="Search for user" autocomplete="off" v-model="search" @input="searchUsers"/>
+            <v-text-field label="Search for user" autocomplete="off" v-model="search" @input="searchUsers" prepend-inner-icon="mdi-magnify" clearable hide-details/>
           </v-col>
         </v-row>
         <v-row>
           <v-col>
-            <v-data-table class="fill-height" :headers="headers" hide-default-footer :items-per-page="-1" :loading="results==null" :items="results || []" disable-sort>
+            <v-data-table class="fill-height" :headers="headers" hide-default-footer :items-per-page="-1" :loading="loading" :items="results || []" disable-sort>
+              <template v-slot:top>
+                <v-btn icon :color="outOfDate ? 'warning' : null" @click="searchUsers"><v-icon>mdi-reload</v-icon></v-btn>
+              </template>
             </v-data-table>
           </v-col>
         </v-row>
@@ -27,19 +30,32 @@ export default {
         { text: 'Money', value: 'money' },
       ],
       search: null,
-      results: null
+      results: null,
+      loading: true,
+      outOfDate: false
     }
   },
   methods: {
     async searchUsers(){
       var vm = this
-      vm.results = null
-      await vm.$axios.get('/database/users', vm.search ? {params: {search: vm.search}} : null).then(res=>vm.results=res.data)
+      vm.loading = true
+      await vm.$axios.get('/database/users', vm.search ? {params: {search: vm.search}} : null).then(res=>{
+        vm.results = res.data
+        vm.outOfDate = false
+        vm.loading = false
+      })
     }
   },
-  async mounted(){
+  mounted(){
     var vm = this
     vm.searchUsers()
+    vm.sockets.subscribe('updatedpublic', () =>{
+      vm.outOfDate = true
+    })
+  },
+  destroyed(){
+    var vm = this
+    vm.sockets.unsubscribe('updatedpublic')
   }
 }
 </script>

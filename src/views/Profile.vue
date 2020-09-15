@@ -11,7 +11,7 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item>
-            <v-text-field label="Public Username" counter="20" v-model="username" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null"/>
+            <v-text-field label="Public Username" counter="20" v-model="$store.state.username" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null;"/>
             <v-btn @click="submit">Submit</v-btn>
           </v-list-item>
           <v-btn color="primary" @click="signOut" class="ma-2">
@@ -27,7 +27,6 @@
 export default {
   data (){
     return {
-      username: '',
       success: null,
       error: null,
       usernameRules: [
@@ -46,27 +45,21 @@ export default {
     },
     async submit(){
       var vm = this
-      if(vm.username == '' || vm.username.length<3 || vm.username.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.username))
+      if(vm.$store.state.username == '' || vm.$store.state.username.length<3 || vm.$store.state.username.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.$store.state.username))
         return
-      vm.$axios.post('/database/user', {username: vm.username})
+      vm.$axios.post('/database/user', {username: vm.$store.state.username})
       .then(res=>{
         console.log(res)
-        if(res.data.code == 0){
-          vm.success=`Your username is now ${vm.username}`
-          vm.$store.state.username = vm.username
-        }
+        if(res.data.code == 0)
+          vm.success=`Your username is now ${vm.$store.state.username}`
         else if (res.data.code == 23505)
-          vm.error=`The username ${vm.username} is already taken`
+          vm.error=`The username ${vm.$store.state.username} is already taken`
         else 
           vm.error="Something went wrong..."
       })
     },
   },
   async mounted(){
-    var vm = this
-    await vm.$axios.get('/database/user').then(res=>{
-      vm.username = res.data.username
-    })
   }
 }
 </script>

@@ -5,6 +5,7 @@ import VueRouter from 'vue-router'
 import App from './App.vue'
 import vuetify from './plugins/vuetify'
 import auth from './plugins/auth'
+import VueSocketIO from 'vue-socket.io'
 
 Vue.config.productionTip = false
 if(process.env.NODE_ENV == "development") 
@@ -17,7 +18,7 @@ Vue.use(auth, {
 })
 Vue.prototype.$axios = axios
 
-//global storage for profile data and whether or not the user is signed in
+//vuex
 function initialState(){
   return {
     isSignedIn: false,
@@ -29,16 +30,23 @@ function initialState(){
 const store = new Vuex.Store({
   state: initialState,
   mutations: {
-    async signIn(state, newState){
+    signIn(state, newState){
       Object.keys(newState).forEach(key => {
         state[key] = newState[key]
       })
     },
-    async signOut(state){
+    signOut(state){
       Object.keys(initialState()).forEach(key => {
         state[key] = initialState()[key]
       })
     },
+    SOCKET_updatedprivate(state, data){
+      Object.keys(data).forEach(key => {
+        state[key] = data[key]
+      })
+      localStorage.darkMode = data.darkmode
+      vuetify.framework.theme.dark = data.darkmode
+    }
   },
   actions: {
     async signIn({commit}){
@@ -47,6 +55,7 @@ const store = new Vuex.Store({
         if(!auth.isSignedIn.get()) await auth.signIn().catch(()=>{}) //if not signed in try to sign in
         if(!auth.isSignedIn.get()) return //if user STILL not signed in after sign in attempt, break function
         Vue.prototype.$axios.defaults.headers.common['Authorization'] = auth.currentUser.get().getAuthResponse().id_token
+        Vue.prototype.$socket.emit('login', auth.currentUser.get().getAuthResponse().id_token)
         Vue.prototype.$axios.post('/database/user')
         await Vue.prototype.$axios.get('/database/user').then(res=>{
           newState.username = res.data.username
@@ -68,7 +77,15 @@ const store = new Vuex.Store({
     }
   }
 })
-
+Vue.use(new VueSocketIO({
+  debug: true,
+  connection: 'http://localhost:3000',
+  vuex: {
+    store,
+    actionPrefix: "SOCKET_",
+    mutationPrefix: "SOCKET_"
+  }
+}))
 //Initialize isSignedIn property 
 Vue.prototype.$auth.then(async auth => {
   if(auth.isSignedIn.get())
@@ -104,6 +121,7 @@ const router = new VueRouter({
   mode: 'history',
   routes: routes
 })
+
 //initializes the vue instance
 new Vue({
   vuetify,
