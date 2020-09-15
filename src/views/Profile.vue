@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container>
     <v-row>
       <v-col>
         <v-card class="ma-2" :elevation="5" v-if="$store.state.isSignedIn">
@@ -11,8 +11,7 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item>
-            <v-text-field label="Public Username" counter="20" v-model="$store.state.username" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null;"/>
-            <v-btn @click="submit">Submit</v-btn>
+            <v-text-field v-on:keyup.enter="submit" label="Public Username" counter="20" v-model="$store.state.username" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null;"/>
           </v-list-item>
           <v-btn color="primary" @click="signOut" class="ma-2">
             <v-icon>mdi-logout</v-icon> Logout

@@ -133,3 +133,7 @@ const port = process.env.PORT || 3000
 server.listen(port, () =>{
 	console.log(`app is listening on port: ${port}`)
 })
+
+setInterval(async ()=>{
+	await db.none('UPDATE users SET money = money+1').catch(()=>{})
+}, 1000)

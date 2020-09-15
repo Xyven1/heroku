@@ -1,5 +1,5 @@
 <template>
-  <v-container class="fill-height" fluid>
+  <v-container class="fill-height">
     <v-row class="fill-height"> 
       <v-col class="fill-height d-flex flex-column">
         <v-row class="shrink"> 
@@ -11,7 +11,9 @@
           <v-col>
             <v-data-table class="fill-height" :headers="headers" hide-default-footer :items-per-page="-1" :loading="loading" :items="results || []" disable-sort>
               <template v-slot:top>
-                <v-btn icon :color="outOfDate ? 'warning' : null" @click="searchUsers"><v-icon>mdi-reload</v-icon></v-btn>
+                <v-card flat class="ma-2 pt-2 text-h4 text-center">
+                  Leaderboard<v-btn icon :color="outOfDate ? 'warning' : null" @click="searchUsers"><v-icon>mdi-reload</v-icon></v-btn>
+                </v-card>
               </template>
             </v-data-table>
           </v-col>

@@ -55,7 +55,7 @@ export default {
     return {
       navigationItems: [
         { title: 'Home', href:'/', icon: 'mdi-home'},
-        { title: 'Testing tab', href:'/test', icon: 'mdi-test-tube' },
+        // { title: 'Testing tab', href:'/test', icon: 'mdi-test-tube' },
         { title: 'Leaderboard', href:'/leaderboard', icon: 'mdi-podium' },
       ],
       drawer: false,
