@@ -1,10 +1,10 @@
 <template>
   <v-app id="app">
-    <v-app-bar app dense>
+    <v-app-bar app color="primary">
       <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
-      <v-toolbar-title>{{$store.state.money ? '$' + Number.parseFloat($store.state.money).toFixed(2) : null}}</v-toolbar-title>
+      <v-toolbar-title><number v-if="$store.state.isSignedIn" class="bold" ref="number2" :format="n=>'$'+n.toFixed(2)" :to="$store.state.money" :duration="2" easing="Power2.easeOut"/></v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn :to="$store.state.isSignedIn ? '/profile' : null" @click="()=>{if(!$store.state.isSignedIn) $store.dispatch('signIn')}" elevation="0">
+      <v-btn :to="$store.state.isSignedIn ? '/profile' : null" @click="()=>{if(!$store.state.isSignedIn) $store.dispatch('signIn')}" elevation="0" color="transparent">
         <v-list-item-content class="pr-2">
           {{$store.state.isSignedIn ? $store.state.username || $store.state.googleProfile.getName() : "Login"}}
         </v-list-item-content>
@@ -96,10 +96,8 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css?family=Oswald');
 html, body, #app{
   height: 100%;
-  font-family: 'Oswold', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -106,7 +106,7 @@ io.on('connect', (socket)=>{
 										(SELECT username, money, created, RANK() OVER (ORDER BY money DESC, created) as rank FROM users) as rankedUser
 										${data == null ? "LIMIT 500" : "WHERE username ILIKE $(search) || '%' LIMIT 50"}`
 		await db.any(query, {search: data}).then(result=>{
-			callback(result.map(e => ({userid: e.userid, rank: e.rank, username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
+			callback(result.map(e => ({userid: e.userid, rank: e.rank, username: e.username, money: e.money})))
 		}).catch(e=>{
 			callback("Failed to retrieve users")
 			console.error(e)
