@@ -41,8 +41,8 @@ export default {
     async searchUsers(){
       var vm = this
       vm.loading = true
-      await vm.$axios.get('/database/users', vm.search ? {params: {search: vm.search}} : null).then(res=>{
-        vm.results = res.data
+      vm.$socket.client.emit('getUsers', vm.search, res=>{
+        vm.results = res
         vm.outOfDate = false
         vm.loading = false
       })
@@ -51,13 +51,13 @@ export default {
   mounted(){
     var vm = this
     vm.searchUsers()
-    vm.sockets.subscribe('updatedpublic', () =>{
+    vm.$socket.$subscribe('updatedpublic', () =>{
       vm.outOfDate = true
     })
   },
-  destroyed(){
+  beforeDestroy(){
     var vm = this
-    vm.sockets.unsubscribe('updatedpublic')
+    vm.$socket.$unsubscribe('updatedpublic')
   }
 }
 </script>

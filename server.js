@@ -10,6 +10,9 @@ const client = new OAuth2Client('***REMOVED***')
 //databse
 const pgp = require('pg-promise')()
 const db = pgp(process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postgres')
+//socket code
+const server = require('http').createServer(app);
+const io = require('socket.io')(server)
 const Listener = require('pg-promise-listener');
 
 //code for development
@@ -22,97 +25,95 @@ if(process.env.__DEV__){
 app.use(express.static('dist'))
 app.use(bodyParser.json())
 
-//get database columns which user can edit
-const dbCols = ["username", "darkmode"]
-
-//authentication middleware
-app.use('/database/user', async (req, res, next) => {
-	await client.verifyIdToken({
-		idToken: req.headers.authorization,
-		audience: '***REMOVED***',
-	}).then((googleusercontent)=>{
-		res.locals.googleid = googleusercontent.payload.sub
-		console.log("Authenticated "+res.locals.googleid)
-		next()
-	}).catch((e)=>{
-		res.send("Failed to authenticate")
-		console.error(e)
-	})
-})
-
-//database config
-app.post('/database/user', async (req, res) => {
-	delete req.body.idtoken
-	const valid = Object.keys(req.body).filter(key => dbCols.includes(key))
-	var query = valid.length>0
-		? `UPDATE users SET ${valid.map(k=> k + '='+ '$(' + k + ')').join(',')} WHERE googleid = $(googleid)`
-		: 'INSERT INTO users(googleid) VALUES($(googleid)) ON CONFLICT (googleid) DO NOTHING'
-	await db.none(query, 
-		valid.reduce((obj, key)=>{obj[key] = req.body[key]; return obj}, {googleid: res.locals.googleid})
-	).then(()=>{
-		res.send({code: 0})
-	}).catch(e=>{
-		res.send(e)
-		console.log(e)
-	})
-})
-app.get('/database/user', async (req, res) => {
-	console.log("Retrieved user")
-	const query = req.query.username == null 
-		? 'SELECT * FROM users WHERE googleid = $(googleid)'
-		: 'SELECT * FROM users WHERE username = $(username)'
-	await db.one(query, {googleid: res.locals.googleid, username: req.query.username}).then((result)=>{
-		console.log(result)
-		res.send(result)
-	}).catch(e=>{
-		res.send("Failed to retrieve username")
-		console.error(e)
-	})
-})
-app.get('/database/users', async (req, res) =>{
-	console.log(req.query)
-	const query = `SELECT username, money, rank FROM 
-									(SELECT username, money, created, RANK() OVER (ORDER BY money DESC, created) as rank FROM users) as rankedUser
-									${req.query.search == null ? "LIMIT 500" : "WHERE username ILIKE $(search) || '%' LIMIT 50"}`
-	if(req.query.search == '')
-		return res.send([])
-	await db.any(query, {search: req.query.search}).then(result=>{
-		res.send(result.map(e => ({userid: e.userid, rank: e.rank, username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
-	}).catch(e=>{
-		res.send("Failed to retrieve user")
-		console.error(e)
-	})
-})
-
 // this * route is to serve project on different page routes except root `/`
 app.get(/.*/, function (req, res) {
 	res.sendFile(path.join(__dirname, '/dist/index.html'))
 })
 
 //web socket
-const server = require('http').createServer(app);
-const io = require('socket.io')(server)
-var clients = []
-io.on('connection', (socket)=>{
-	console.log("connected")
-	socket.on('login', async (data) =>{ //user caching
+var clients = [] //client cache
+var listeners = [] //database listeners
+const dbCols = ["username", "darkmode"] //columns users are allowed to modify
+io.on('connect', (socket)=>{
+	var cli = {
+		sessionID: socket.id, 
+		ip: socket.handshake.headers["x-forwarded-for"] || socket.conn.remoteAddress.split(":")[3] || null,
+		googleid: null
+	}
+	clients.push(cli)
+	console.log("Connected new user:", cli)
+	socket.on('login', async (data, callback = () => {}) =>{ 
 		await client.verifyIdToken({
 			idToken: data,
 			audience: '***REMOVED***',
-		}).then((googleusercontent)=>{
-			var clientIndex = clients.findIndex(c=> c.googleid == googleusercontent.payload.sub)
-			if(clientIndex < 0)
-				clients.push({sessionID: socket.id, googleid: googleusercontent.payload.sub})
-			else
-				clients[clientIndex].sessionID = socket.id
-			console.log('clients', clients)
+		}).then(async (googleusercontent)=>{
+			cli.googleid = googleusercontent.payload.sub
+			await db.none('INSERT INTO users(googleid) VALUES($(googleid)) ON CONFLICT (googleid) DO NOTHING', {googleid: cli.googleid}).catch(()=>{})
+			await db.one('SELECT * FROM users WHERE googleid = $(googleid)', {googleid: cli.googleid}).then((res)=>{
+				callback({ ok: true, data: res})
+				socket.emit('loggedIn')
+				socket.broadcast.emit('userLoggedIn', res.username)
+			}).catch(()=>{})
 		}).catch((e)=>{
-			console.error("Failed to log user in (socket)", e)
+			console.error("Failed to login user", e)
+			callback({ok: false})
+		})
+	})
+	socket.on('logout', () =>{
+		console.log("attempted to log out: " + socket.id)
+		cli.googleid = null
+	})
+	socket.on('disconnect', ()=>{
+		console.log("disconnected: " + socket.id)
+		clients.pop(cli)
+	})
+	socket.on('checkUsername', async (data, callback = ()=>{}) => {
+		await db.oneOrNone('SELECT 1 FROM users WHERE username ~~* $(username)', 
+			{username: data}
+		).then((res)=>{
+			callback({taken: !!res})
+		}).catch(e=>{
+			callback({code: e.code})
+			console.error(e)
+		})	
+	})
+	socket.on('getUser', async (data, callback = ()=>{}) => {
+		if(cli.googleid == null) return callback({msg:'failed to authenticate'})
+		const query = data == null 
+			? 'SELECT * FROM users WHERE googleid = $(googleid)'
+			: 'SELECT * FROM users WHERE username = $(username)'
+		await db.one(query, {googleid: cli.googleid, username: data}).then((result)=>{
+			callback({data: result})
+		}).catch(e=>{
+			callback({error: "Failed to retrieve user"})
+			console.error(e)
+		})
+	})
+	socket.on('updateUser', async (data, callback = ()=>{}) => {
+		if(cli.googleid == null) return callback({msg:'failed to authenticate'})
+		const valid = Object.keys(data ?? {}).filter(key => dbCols.includes(key))
+		if(valid.length < 1) return callback({msg:'Must specify properties to update'})
+		await db.none(`UPDATE users SET ${valid.map(k=> k + '='+ '$(' + k + ')').join(',')} WHERE googleid = $(googleid)`, 
+			valid.reduce((obj, key)=>{obj[key] = data[key]; return obj}, {googleid: cli.googleid})
+		).then(()=>{
+			callback({ok: true})
+		}).catch(e=>{
+			callback({code: e.code})
+			console.error(e)
+		})
+	})
+	socket.on('getUsers', async (data, callback = ()=>{}) => {
+		const query = `SELECT username, money, rank FROM 
+										(SELECT username, money, created, RANK() OVER (ORDER BY money DESC, created) as rank FROM users) as rankedUser
+										${data == null ? "LIMIT 500" : "WHERE username ILIKE $(search) || '%' LIMIT 50"}`
+		await db.any(query, {search: data}).then(result=>{
+			callback(result.map(e => ({userid: e.userid, rank: e.rank, username: e.username, money: '$' + Number.parseFloat(e.money).toFixed(2)})))
+		}).catch(e=>{
+			callback("Failed to retrieve users")
+			console.error(e)
 		})
 	})
 })
-io.on('disconnection', ()=>{console.log("disconnect")})
-var listeners = []
 listeners.push(new Listener({
 	dbConnection: db,
 	parseJson: true,

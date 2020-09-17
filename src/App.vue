@@ -14,6 +14,14 @@
           </v-img>
         </v-avatar>
       </v-btn>
+      <v-tooltip bottom v-if="$socket.disconnected" >
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon color="error" v-bind="attrs" v-on="on" class="ml-2"> 
+            mdi-lan-disconnect
+          </v-icon>
+        </template>
+        <span>Disconnected</span>
+      </v-tooltip>
       <v-menu offset-y transition="slide-y-transition" :close-on-content-click="false">
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-bind="attrs" v-on="on">
@@ -44,6 +52,9 @@
         <router-view></router-view>
       </transition>
     </v-main>
+    <v-snackbar bottom right v-model="snackbar">
+      {{text}}
+    </v-snackbar>
   </v-app>
 </template>
 <script>
@@ -59,15 +70,28 @@ export default {
         { title: 'Leaderboard', href:'/leaderboard', icon: 'mdi-podium' },
       ],
       drawer: false,
+      snackbar: false,
+      text: null
     }
   },methods:{
     darkMode(){
       var vm = this
       vm.$vuetify.theme.dark = !vm.$vuetify.theme.dark //update the website theme
-      vm.$axios.post('/database/user', {darkmode: vm.$vuetify.theme.dark})
-      localStorage.darkMode = vm.$vuetify.theme.dark //update the local theme
+      localStorage.darkMode = vm.$vuetify.theme.dark //update the local theme\
+      vm.$socket.client.emit('updateUser', {darkmode: vm.$vuetify.theme.dark})
     },
   },
+  mounted(){
+    var vm = this
+    vm.$socket.$subscribe('userLoggedIn', (username) =>{
+      vm.text = username + ' logged in'
+      vm.snackbar = true
+    })
+  },
+  beforeDestroy(){
+    var vm = this
+    vm.$socket.$unsubscribe('userLoggedIn')
+  }
 }
 </script>
 

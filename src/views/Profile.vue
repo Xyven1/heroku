@@ -11,7 +11,7 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item>
-            <v-text-field v-on:keyup.enter="submit" label="Public Username" counter="20" v-model="$store.state.username" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null;"/>
+            <v-text-field v-on:keyup.enter="submit" label="Public Username" autocomplete="off" counter="20" v-model="newUsername" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null; test()" @blur="resetField"/>
           </v-list-item>
           <v-btn color="primary" @click="signOut" class="ma-2">
             <v-icon>mdi-logout</v-icon> Logout
@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import { debounce } from 'debounce'
 export default {
   data (){
     return {
@@ -34,9 +35,16 @@ export default {
         value=>value == '' || value == null || /^[a-zA-Z]/g.test(value) || 'Username must begin with a letter',
         value=>value == '' || value == null || /^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(value) || 'Username can only contain letters, numbers, -, and .',
       ],
+      newUsername: null
     }
   },
   methods: {
+    test: debounce(function () {
+      var vm = this
+      if(vm.newUsername == '' || vm.newUsername.length<3 || vm.newUsername.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.newUsername) || vm.newUsername == vm.$store.state.username)
+        return  
+      vm.$socket.client.emit('checkUsername', vm.newUsername, res=>vm.error = res.taken ? 'That username is already taken': null)
+    }, 250),
     async signOut(){
       var vm = this
       await vm.$store.dispatch('signOut')
@@ -44,21 +52,34 @@ export default {
     },
     async submit(){
       var vm = this
-      if(vm.$store.state.username == '' || vm.$store.state.username.length<3 || vm.$store.state.username.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.$store.state.username))
+      if(vm.newUsername == '' || vm.newUsername.length<3 || vm.newUsername.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.newUsername) || vm.error || vm.newUsername == vm.$store.state.username)
         return
-      vm.$axios.post('/database/user', {username: vm.$store.state.username})
-      .then(res=>{
-        console.log(res)
-        if(res.data.code == 0)
-          vm.success=`Your username is now ${vm.$store.state.username}`
-        else if (res.data.code == 23505)
-          vm.error=`The username ${vm.$store.state.username} is already taken`
+      vm.$socket.client.emit('updateUser', {username: vm.newUsername}, res=>{
+        if(res.ok){
+          vm.success=`Your username is now ${vm.newUsername}`
+          vm.$store.state.username = vm.newUsername
+        }
         else 
           vm.error="Something went wrong..."
       })
     },
+    resetField(){
+      var vm = this
+      vm.error=null
+      vm.newUsername = vm.$store.state.username
+    },
   },
-  async mounted(){
+  created(){
+    var vm = this
+    if(vm.$store.state.username != null)
+      return vm.newUsername = vm.$store.state.username
+    vm.unwatch = this.$store.watch(
+      (state) => state.username,
+      (newValue) => {
+        vm.newUsername = newValue
+        vm.unwatch()
+      },
+    );
   }
 }
 </script>
