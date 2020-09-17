@@ -119,6 +119,7 @@ listeners.push(new Listener({
 	parseJson: true,
 	channel: 'updatedprivate',
 	onDatabaseNotification: data => {
+		console.log('looking for ' + data.googleid + ' in ', clients)
 		var cli = clients.find(c=> c.googleid == data.googleid)
 		if(cli)
 			io.to(cli.sessionID).emit('updatedprivate', data)
