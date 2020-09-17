@@ -74,7 +74,6 @@ io.on('connect', (socket)=>{
 			callback({taken: !!res})
 		}).catch(e=>{
 			callback({code: e.code})
-			console.error(e)
 		})	
 	})
 	socket.on('getUser', async (data, callback = ()=>{}) => {

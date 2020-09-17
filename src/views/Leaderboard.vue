@@ -4,7 +4,7 @@
       <v-col class="fill-height d-flex flex-column">
         <v-row class="shrink"> 
           <v-col>
-            <v-text-field label="Search for user" autocomplete="off" v-model="search" @input="searchUsers" prepend-inner-icon="mdi-magnify" clearable hide-details/>
+            <v-text-field label="Search for user" autocomplete="off" v-model="search" prepend-inner-icon="mdi-magnify" v-debounce="searchUsers" clearable hide-details/>
           </v-col>
         </v-row>
         <v-row>

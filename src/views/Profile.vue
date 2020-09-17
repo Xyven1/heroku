@@ -11,7 +11,7 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item>
-            <v-text-field v-on:keyup.enter="submit" label="Public Username" autocomplete="off" counter="20" v-model="newUsername" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null; test()" @blur="resetField"/>
+            <v-text-field v-on:keyup.enter="submit" label="Public Username" autocomplete="off" counter="20" v-model="newUsername" :error-messages="error" :success-messages="success" :rules="usernameRules" @input="error=null; success=null" v-debounce="checkUsername" @blur="resetField"/>
           </v-list-item>
           <v-btn color="primary" @click="signOut" class="ma-2">
             <v-icon>mdi-logout</v-icon> Logout
@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import { debounce } from 'debounce'
 export default {
   data (){
     return {
@@ -39,12 +38,13 @@ export default {
     }
   },
   methods: {
-    test: debounce(function () {
+    checkUsername(){
       var vm = this
+      console.log('checked')
       if(vm.newUsername == '' || vm.newUsername.length<3 || vm.newUsername.length>20 || !/^[a-zA-Z][a-zA-Z0-9.-]*$/g.test(vm.newUsername) || vm.newUsername == vm.$store.state.username)
         return  
       vm.$socket.client.emit('checkUsername', vm.newUsername, res=>vm.error = res.taken ? 'That username is already taken': null)
-    }, 250),
+    },
     async signOut(){
       var vm = this
       await vm.$store.dispatch('signOut')

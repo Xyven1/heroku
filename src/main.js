@@ -6,12 +6,17 @@ import store from './plugins/store'
 import router from './plugins/router'
 import VueSocketIOExt from 'vue-socket.io-extended'
 import io from 'socket.io-client'
+import vueDebounce from 'vue-debounce'
+
 
 Vue.config.productionTip = false
 
 const socket = io(process.env.NODE_ENV == "development" ? 'http://localhost:3000' : 'https://website-10.herokuapp.com');
 
 Vue.use(VueSocketIOExt, socket, { store });
+Vue.use(vueDebounce, {
+  defaultTime: '150ms'
+})
 
 Vue.prototype.$socket.client.on('connect', () => {if(store.state.isSignedIn) store.dispatch('signIn')})
 //Initialize isSignedIn property 
