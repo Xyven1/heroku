@@ -13,6 +13,7 @@ Vue.config.productionTip = false
 
 const socket = io(process.env.NODE_ENV == "development" ? 'http://localhost:3000' : 'https://website-10.herokuapp.com');
 
+console.log(process.env)
 Vue.use(VueSocketIOExt, socket, { store })
 Vue.use(VueNumber)
 Vue.use(vueDebounce, {
