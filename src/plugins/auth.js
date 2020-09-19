@@ -1,6 +1,6 @@
 var auth2;
 const params = {
-  client_id: '***REMOVED***'
+  client_id: process.env.VUE_APP_API_KEY
 }
 //creates and injects script for google auth2 implementation
 function createScript(){

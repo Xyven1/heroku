@@ -6,7 +6,7 @@ const path = require('path')
 const bodyParser = require('body-parser')
 //google authentication
 const {OAuth2Client} = require('google-auth-library')
-const client = new OAuth2Client('***REMOVED***')
+const client = new OAuth2Client(process.env.client)
 //databse
 const pgp = require('pg-promise')()
 const db = pgp(process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postgres')
@@ -46,7 +46,7 @@ io.on('connect', (socket)=>{
 	socket.on('login', async (data, callback = () => {}) =>{ 
 		await client.verifyIdToken({
 			idToken: data,
-			audience: '***REMOVED***',
+			audience: process.env.clientid,
 		}).then(async (googleusercontent)=>{
 			cli.user = {}
 			cli.user.googleid = googleusercontent.payload.sub
