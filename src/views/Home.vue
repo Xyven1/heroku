@@ -9,7 +9,7 @@
       <v-row>
         <v-col>
           <v-card flat class="fill-height pa-10 text-h4 text-center"> Nothing is worth seeing here, but check out the cool <a @click="$router.push('/leaderboard')"><u>leaderboard</u></a></v-card>
-        '</v-col>
+        </v-col>
       </v-row>
     </v-col>
   </v-container>

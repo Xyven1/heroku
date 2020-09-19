@@ -68,6 +68,7 @@ export default {
         { title: 'Home', href:'/', icon: 'mdi-home'},
         // { title: 'Testing tab', href:'/test', icon: 'mdi-test-tube' },
         { title: 'Leaderboard', href:'/leaderboard', icon: 'mdi-podium' },
+        { title: 'Chat Room', href:'/chat', icon: 'mdi-chat' },
       ],
       drawer: false,
       snackbar: false,
@@ -83,14 +84,16 @@ export default {
   },
   mounted(){
     var vm = this
-    vm.$socket.$subscribe('userLoggedIn', (username) =>{
+    vm.$socket.client.on('userLoggedIn', (username) =>{
+      if (username==null)
+        return
       vm.text = username + ' logged in'
       vm.snackbar = true
     })
   },
   beforeDestroy(){
     var vm = this
-    vm.$socket.$unsubscribe('userLoggedIn')
+    vm.$socket.client.off('userLoggedIn')
   }
 }
 </script>

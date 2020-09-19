@@ -38,19 +38,22 @@ io.on('connect', (socket)=>{
 	var cli = {
 		sessionID: socket.id, 
 		ip: socket.handshake.headers["x-forwarded-for"] || socket.conn.remoteAddress.split(":")[3] || null,
-		googleid: null
+		user: null
 	}
 	clients.push(cli)
-	console.log("Connected new user:", cli)
+	console.log("Connected new user:", cli.sessionID)
+	//client managment
 	socket.on('login', async (data, callback = () => {}) =>{ 
 		await client.verifyIdToken({
 			idToken: data,
 			audience: '***REMOVED***',
 		}).then(async (googleusercontent)=>{
-			cli.googleid = googleusercontent.payload.sub
-			await db.none('INSERT INTO users(googleid) VALUES($(googleid)) ON CONFLICT (googleid) DO NOTHING', {googleid: cli.googleid}).catch(()=>{})
-			await db.one('SELECT * FROM users WHERE googleid = $(googleid)', {googleid: cli.googleid}).then((res)=>{
+			cli.user = {}
+			cli.user.googleid = googleusercontent.payload.sub
+			await db.none('INSERT INTO users(googleid) VALUES($(googleid)) ON CONFLICT (googleid) DO NOTHING', {googleid: cli.user.googleid}).catch(()=>{})
+			await db.one('SELECT * FROM users WHERE googleid = $(googleid)', {googleid: cli.user.googleid}).then((res)=>{
 				callback({ ok: true, data: res})
+				cli.user = res
 				socket.emit('loggedIn')
 				socket.broadcast.emit('userLoggedIn', res.username)
 			}).catch(()=>{})
@@ -61,12 +64,13 @@ io.on('connect', (socket)=>{
 	})
 	socket.on('logout', () =>{
 		console.log("attempted to log out: " + socket.id)
-		cli.googleid = null
+		cli.user = null
 	})
 	socket.on('disconnect', ()=>{
 		console.log("disconnected: " + socket.id)
 		clients.pop(cli)
 	})
+	//databse interaction
 	socket.on('checkUsername', async (data, callback = ()=>{}) => {
 		await db.oneOrNone('SELECT 1 FROM users WHERE username ~~* $(username)', 
 			{username: data}
@@ -77,7 +81,7 @@ io.on('connect', (socket)=>{
 		})	
 	})
 	socket.on('getUser', async (data, callback = ()=>{}) => {
-		if(cli.googleid == null) return callback({msg:'failed to authenticate'})
+		if(cli.user == null) return callback({msg:'failed to authenticate'})
 		const query = data == null 
 			? 'SELECT * FROM users WHERE googleid = $(googleid)'
 			: 'SELECT * FROM users WHERE username = $(username)'
@@ -89,11 +93,11 @@ io.on('connect', (socket)=>{
 		})
 	})
 	socket.on('updateUser', async (data, callback = ()=>{}) => {
-		if(cli.googleid == null) return callback({msg:'failed to authenticate'})
+		if(cli.user == null) return callback({msg:'failed to authenticate'})
 		const valid = Object.keys(data ?? {}).filter(key => dbCols.includes(key))
 		if(valid.length < 1) return callback({msg:'Must specify properties to update'})
 		await db.none(`UPDATE users SET ${valid.map(k=> k + '='+ '$(' + k + ')').join(',')} WHERE googleid = $(googleid)`, 
-			valid.reduce((obj, key)=>{obj[key] = data[key]; return obj}, {googleid: cli.googleid})
+			valid.reduce((obj, key)=>{obj[key] = data[key]; return obj}, {googleid: cli.user.googleid})
 		).then(()=>{
 			callback({ok: true})
 		}).catch(e=>{
@@ -112,7 +116,41 @@ io.on('connect', (socket)=>{
 			console.error(e)
 		})
 	})
+	//chat feature
+	socket.on('sendMessage', (message) => {
+		if(cli.user == null) return
+		console.log(cli.user)
+		socket.broadcast.emit('chat', {
+			message: message, 
+			user: {
+				username: cli.user.username,
+				userid: cli.user.userid,
+				money: cli.user.money,
+				created: cli.user.created
+			}, 
+			timestamp: Date.now()
+		})
+	})
+	socket.on('joinedChat', () => {
+		if(cli.user == null) return
+		socket.broadcast.emit('chat', {join: true, user: {
+			username: cli.user.username,
+			userid: cli.user.userid,
+			money: cli.user.money,
+			created: cli.user.created}
+		})
+	})
+	socket.on('leftChat', () => {
+		if(cli.user == null) return 
+		socket.broadcast.emit('chat', {leave: true, user: {
+			username: cli.user.username,
+			userid: cli.user.userid,
+			money: cli.user.money,
+			created: cli.user.created}
+		})
+	})
 })
+//listeners for pg database
 listeners.push(new Listener({
 	dbConnection: db,
 	parseJson: true,
