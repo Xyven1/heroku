@@ -157,7 +157,7 @@ listeners.push(new Listener({
 	channel: 'updatedprivate',
 	onDatabaseNotification: data => {
 		clients.forEach(cli=>{
-			if(cli.googleid == data.googleid)
+			if(cli.user.googleid == data.googleid)
 				io.to(cli.sessionID).emit('updatedprivate', data)
 		})
 	}
