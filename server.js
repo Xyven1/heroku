@@ -20,7 +20,6 @@ if(process.env.__DEV__){
 	console.log("Running in developement environment")
 	app.use(cors())	
 }
-console.log(process.env.clientid)
 //configuring dist to serve app files
 app.use(express.static('dist'))
 app.use(bodyParser.json())
@@ -157,7 +156,7 @@ listeners.push(new Listener({
 	channel: 'updatedprivate',
 	onDatabaseNotification: data => {
 		clients.forEach(cli=>{
-			if(cli.user.googleid == data.googleid)
+			if(cli.user?.googleid == data.googleid)
 				io.to(cli.sessionID).emit('updatedprivate', data)
 		})
 	}
