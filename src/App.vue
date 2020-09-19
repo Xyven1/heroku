@@ -2,7 +2,7 @@
   <v-app id="app">
     <v-app-bar app color="primary">
       <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
-      <v-toolbar-title><number v-if="$store.state.isSignedIn" class="bold" ref="number2" :format="n=>'$'+n.toFixed(2)" :to="$store.state.money" :duration="2" easing="Power2.easeOut"/></v-toolbar-title>
+      <v-toolbar-title><animated-number v-if="$store.state.isSignedIn" class="bold" easing="easeOutCirc" :formatValue="n=>'$'+n.toFixed(2)" :value="$store.state.money" :duration="2000"/></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn :to="$store.state.isSignedIn ? '/profile' : null" @click="()=>{if(!$store.state.isSignedIn) $store.dispatch('signIn')}" elevation="0" color="transparent">
         <v-list-item-content class="pr-2">
@@ -58,9 +58,11 @@
   </v-app>
 </template>
 <script>
+import AnimatedNumber from "animated-number-vue"
 export default {
   name: 'App',
   components: {
+    AnimatedNumber
   },
   data() {
     return {
