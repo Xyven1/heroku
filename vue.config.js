@@ -4,6 +4,6 @@ module.exports = {
     "vuetify"
   ],
   configureWebpack: config => {
-    merge(config, {VUE_APP_API_KEY: process.env.APIKEY});
+    merge(config, {VUE_APP_API_KEY: 'test'});
   }
 }
