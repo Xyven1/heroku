@@ -1,7 +1,7 @@
 <template>
   <v-app id="app">
     <v-app-bar app color="primary">
-      <v-app-bar-nav-icon @click="drawer=true"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="drawer=true" aria-label="navigation"></v-app-bar-nav-icon>
       <v-toolbar-title><animated-number v-if="$store.state.isSignedIn" class="bold" easing="easeOutCirc" :formatValue="n=>'$'+n.toFixed(2)" :value="$store.state.money" :duration="2000"/></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn :to="$store.state.isSignedIn ? '/profile' : null" @click="()=>{if(!$store.state.isSignedIn) $store.dispatch('signIn')}" elevation="0" color="transparent">
@@ -24,7 +24,7 @@
       </v-tooltip>
       <v-menu offset-y transition="slide-y-transition" :close-on-content-click="false">
         <template v-slot:activator="{ on, attrs }">
-          <v-btn icon v-bind="attrs" v-on="on">
+          <v-btn icon v-bind="attrs" v-on="on" aria-label="settings">
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
@@ -103,8 +103,6 @@ export default {
 <style>
 html, body, #app{
   height: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 html {
   overflow: hidden !important;

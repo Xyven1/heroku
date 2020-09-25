@@ -40,6 +40,9 @@ app.use(compression())
 app.use(express.static('dist'))
 app.use(bodyParser.json())
 
+app.use('/robots.txt', (req, res)=>{
+	res.send('User-Agent: * Disallow: /')
+})
 // this * route is to serve project on different page routes except root `/`
 app.get(/.*/, function (req, res) {
 	res.sendFile(path.join(path.dirname(fileURLToPath(import.meta.url)), '/dist/index.html'))
