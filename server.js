@@ -3,7 +3,6 @@ import cors from 'cors'
 import path from 'path'
 import bodyParser from 'body-parser' 
 import compression from 'compression'
-import sslRedirect from 'heroku-ssl-redirect'
 import googleAuth from 'google-auth-library'
 import pgPromise from 'pg-promise'
 import Listener from 'pg-promise-listener'
@@ -23,7 +22,12 @@ const io = socketIO(server)
 
 //code dependant on node environment
 if(process.env.NODE_ENV === 'production') {
-  app.use(sslRedirect())
+	app.use((req, res, next) => {
+		if (req.header('x-forwarded-proto') !== 'https')
+			res.redirect(`https://${req.header('host')}${req.url}`)
+		else
+			next()
+	})
 }else {
 	console.log("Running in developement environment")
 	app.use(cors())	
