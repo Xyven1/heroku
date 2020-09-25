@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import bodyParser from 'body-parser' 
 import compression from 'compression'
 import googleAuth from 'google-auth-library'
@@ -22,6 +23,7 @@ const io = socketIO(server)
 
 //code dependant on node environment
 if(process.env.NODE_ENV === 'production') {
+	console.log("Running in production en")
 	app.use((req, res, next) => {
 		if (req.header('x-forwarded-proto') !== 'https')
 			res.redirect(`https://${req.header('host')}${req.url}`)
@@ -34,13 +36,13 @@ if(process.env.NODE_ENV === 'production') {
 }
 
 //configuring dist to \serve app files
+app.use(compression())
 app.use(express.static('dist'))
 app.use(bodyParser.json())
-app.use(compression())
 
 // this * route is to serve project on different page routes except root `/`
 app.get(/.*/, function (req, res) {
-	res.sendFile(path.join(__dirname, '/dist/index.html'))
+	res.sendFile(path.join(path.dirname(fileURLToPath(import.meta.url)), '/dist/index.html'))
 })
 
 //web socket
