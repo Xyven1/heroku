@@ -1,29 +1,29 @@
-const express = require('express')
+import express from 'express'
+import cors from 'cors'
+import path from 'path'
+import bodyParser from 'body-parser' 
+import compression from 'compression'
+import sslRedirect from 'heroku-ssl-redirect'
+import googleAuth from 'google-auth-library'
+import pgPromise from 'pg-promise'
+import Listener from 'pg-promise-listener'
+import http from 'http'
+import socketIO from 'socket.io'
+
 const app = express()
-//utilities
-const cors = require('cors')
-const path = require('path')
-const bodyParser = require('body-parser')
-const compression = require('compression')
-//google authentication
-const {OAuth2Client} = require('google-auth-library')
-const client = new OAuth2Client(process.env.clientid)
-//databse
-const pgp = require('pg-promise')()
+
+const pgp = pgPromise({})
 const db = pgp(process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postgres')
-//socket code
-const server = require('http').createServer(app);
-const io = require('socket.io')(server)
-const Listener = require('pg-promise-listener');
+
+const {OAuth2Client} = googleAuth
+const client = new OAuth2Client(process.env.clientid)
+
+const server = http.createServer(app);
+const io = socketIO(server)
 
 //code dependant on node environment
 if(process.env.NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https')
-      res.redirect(`https://${req.header('host')}${req.url}`)
-    else
-      next()
-  })
+  app.use(sslRedirect())
 }else {
 	console.log("Running in developement environment")
 	app.use(cors())	
