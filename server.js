@@ -4,6 +4,7 @@ const app = express()
 const cors = require('cors')
 const path = require('path')
 const bodyParser = require('body-parser')
+const compression = require('compression')
 //google authentication
 const {OAuth2Client} = require('google-auth-library')
 const client = new OAuth2Client(process.env.clientid)
@@ -15,14 +16,23 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server)
 const Listener = require('pg-promise-listener');
 
-//code for development
-if(process.env.__DEV__){
+//code dependant on node environment
+if(process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https')
+      res.redirect(`https://${req.header('host')}${req.url}`)
+    else
+      next()
+  })
+}else {
 	console.log("Running in developement environment")
 	app.use(cors())	
 }
-//configuring dist to serve app files
+
+//configuring dist to \serve app files
 app.use(express.static('dist'))
 app.use(bodyParser.json())
+app.use(compression())
 
 // this * route is to serve project on different page routes except root `/`
 app.get(/.*/, function (req, res) {
