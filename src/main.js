@@ -7,6 +7,7 @@ import router from './plugins/router'
 import VueSocketIOExt from 'vue-socket.io-extended'
 import io from 'socket.io-client'
 import vueDebounce from 'vue-debounce'
+import './registerServiceWorker'
 
 Vue.config.productionTip = false
 
