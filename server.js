@@ -51,6 +51,7 @@ app.get(/.*/, function (req, res) {
 //web socket
 var clients = [] //client cache
 var listeners = [] //database listeners
+var chatHistory = []
 const dbCols = ["username", "darkmode"] //columns users are allowed to modify
 io.on('connect', (socket)=>{
 	var cli = {
@@ -137,8 +138,7 @@ io.on('connect', (socket)=>{
 	//chat feature
 	socket.on('sendMessage', (message) => {
 		if(cli.user == null) return
-		console.log(cli.user)
-		socket.broadcast.emit('chat', {
+		let messageObj = {
 			message: message, 
 			user: {
 				username: cli.user.username,
@@ -147,9 +147,12 @@ io.on('connect', (socket)=>{
 				created: cli.user.created
 			}, 
 			timestamp: Date.now()
-		})
+		}
+		socket.broadcast.emit('chat', messageObj)
+		chatHistory.push(messageObj)
+		if(chatHistory.length>500) chatHistory.shift()
 	})
-	socket.on('joinedChat', () => {
+	socket.on('joinedChat', (callback) => {
 		if(cli.user == null) return
 		socket.broadcast.emit('chat', {join: true, user: {
 			username: cli.user.username,
@@ -157,6 +160,10 @@ io.on('connect', (socket)=>{
 			money: cli.user.money,
 			created: cli.user.created}
 		})
+		callback(chatHistory.map(m=>{
+			if(m.user?.userid == cli.user.userid) m.user = null
+			return m
+		}))
 	})
 	socket.on('leftChat', () => {
 		if(cli.user == null) return 

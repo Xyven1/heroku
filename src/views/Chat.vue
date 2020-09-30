@@ -11,7 +11,7 @@
                   <v-card tile :color="message.user==null ? 'primary' : 'secondary'" dark class="pa-2 rounded-t-lg"
                   width="45%" :class="{'float-right':message.user==null, 'rounded-bl-lg':message.user==null, 'rounded-br-lg':message.user!=null}">
                     <div class="overline mt-n3" v-if="message.user!=null">{{message.user.username || "Anon"}}</div>
-                    {{message.message}}
+                    <span v-html="discordParse(message.message)"></span>
                   </v-card>
                 </v-col>
                 <v-col v-if="message.join" class="text-center subtitle-1 mt-0">
@@ -27,7 +27,7 @@
       </v-row>
       <v-row>
         <v-col>
-          <v-text-field autocomplete="off" placeholder="Type here" @keyup.enter="sendMessage" v-model="message"/>
+          <v-textarea auto-grow rows="1" placeholder="Type here" @keydown.enter.exact="sendMessage($event)" @keydown.shift.enter="()=>{}" ref="input"/>
         </v-col>
       </v-row>
     </v-col>
@@ -35,6 +35,7 @@
 </template>
 <script>
 import vueCustomScrollbar from 'vue-custom-scrollbar'
+import { toHTML } from 'discord-markdown'
 export default {
   components: {
     vueCustomScrollbar
@@ -46,13 +47,18 @@ export default {
     }
   },
   methods: {
-    sendMessage(){
+    discordParse(a){
+      return toHTML(a)
+    },
+    sendMessage(e){
       var vm = this
-      if(vm.message=='' || vm.message==null) return
-      vm.messageCache.push({message: vm.message, user: null, timestamp: Date.now()})
+      vm.$refs.input.internalValue = null
+      e.preventDefault()
+      var message = e.target.value
+      if(message=='' || message==null) return
+      vm.messageCache.push({message: message, user: null, timestamp: Date.now()})
       vm.scrollToBottom()
-      vm.$socket.client.emit('sendMessage', vm.message)
-      vm.message = null
+      vm.$socket.client.emit('sendMessage', message)
     },
     scrollToBottom(){
       var vm = this
@@ -64,7 +70,9 @@ export default {
   },
   mounted(){
     var vm = this
-    vm.$socket.client.emit('joinedChat')
+    vm.$socket.client.emit('joinedChat', (history)=>{
+      vm.messageCache = history
+    })
     vm.$socket.client.on('chat', (data)=>{
       vm.messageCache.push(data)
       if (vm.messageCache.length > 200) vm.messageCache.shift()
@@ -82,3 +90,13 @@ export default {
   }
 }
 </script>
+<style>
+code {
+  background-color: rgba(0,0,0,0.3) !important;
+  color: lightgrey !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-color: black !important;
+  padding: .2em .4em !important;
+}
+</style>
