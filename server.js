@@ -13,10 +13,7 @@ import socketIO from 'socket.io'
 const app = express()
 
 const pgp = pgPromise({})
-const db = pgp(process.env.DATABASE_URL ? {
-	connectionString: process.env.DATABASE_URL,
-	ssl: true
-} : 'postgresql://postgres@localhost:5432/postgres')
+const db = pgp(process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/postgres')
 
 const {OAuth2Client} = googleAuth
 const client = new OAuth2Client(process.env.clientid)
