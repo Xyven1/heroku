@@ -163,10 +163,7 @@ io.on('connect', (socket)=>{
 			created: cli.user.created}
 		})
 		console.log(chatHistory)
-		callback(chatHistory.map(m=>{
-			if(m.user.userid == cli.user.userid) m.user = null
-			return m
-		}))
+		callback(chatHistory)
 	})
 	socket.on('leftChat', () => {
 		if(cli.user == null) return 

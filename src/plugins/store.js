@@ -10,6 +10,7 @@ function initialState(){
     isSignedIn: false,
     googleProfile: null,
     username: null, 
+    userid: null,
     money: null,
   }
 }
@@ -44,6 +45,7 @@ const mutations = {
         Vue.prototype.$socket.client.emit('login', auth.currentUser.get().getAuthResponse().id_token, res=>{
           if (res.ok){
             newState.username = res.data.username
+            newState.userid = res.data.userid
             newState.money = res.data.money
             localStorage.darkMode = res.data.darkmode
             vuetify.framework.theme.dark = res.data.darkmode
