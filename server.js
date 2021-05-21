@@ -41,7 +41,8 @@ app.use(express.static('dist'))
 app.use(bodyParser.json())
 
 app.use('/robots.txt', (req, res)=>{
-	res.send('User-Agent: * Disallow: /')
+	res.send(`User-Agent: * 
+Disallow: /`)
 })
 // this * route is to serve project on different page routes except root `/`
 app.get(/.*/, function (req, res) {
@@ -138,18 +139,16 @@ io.on('connect', (socket)=>{
 	//chat feature
 	socket.on('sendMessage', (message) => {
 		if(cli.user == null) return
-		let messageObj = {
+		var messageObj = {
 			message: message, 
 			user: {
 				username: cli.user.username,
-				userid: cli.user.userid,
-				money: cli.user.money,
-				created: cli.user.created
+				userid: cli.user.userid
 			}, 
 			timestamp: Date.now()
 		}
 		socket.broadcast.emit('chat', messageObj)
-		chatHistory.push(messageObj)
+		chatHistory.push(JSON.parse(JSON.stringify(messageObj)))
 		if(chatHistory.length>500) chatHistory.shift()
 	})
 	socket.on('joinedChat', (callback) => {
@@ -160,8 +159,9 @@ io.on('connect', (socket)=>{
 			money: cli.user.money,
 			created: cli.user.created}
 		})
+		console.log(chatHistory)
 		callback(chatHistory.map(m=>{
-			if(m.user?.userid == cli.user.userid) m.user = null
+			if(m.user.userid == cli.user.userid) m.user = null
 			return m
 		}))
 	})
@@ -182,8 +182,11 @@ listeners.push(new Listener({
 	channel: 'updatedprivate',
 	onDatabaseNotification: data => {
 		clients.forEach(cli=>{
-			if(cli.user?.googleid == data.googleid)
+			if(cli.user?.googleid == data.googleid){
 				io.to(cli.sessionID).emit('updatedprivate', data)
+				console.log(cli.user, data)
+				// Object.assign(cli.user, data)
+			}
 		})
 	}
 }))

@@ -11,7 +11,7 @@
                   <v-card tile :color="message.user==null ? 'primary' : 'secondary'" dark class="pa-2 rounded-t-lg"
                   width="45%" :class="{'float-right':message.user==null, 'rounded-bl-lg':message.user==null, 'rounded-br-lg':message.user!=null}">
                     <div class="overline mt-n3" v-if="message.user!=null">{{message.user.username || "Anon"}}</div>
-                    <span v-html="discordParse(message.message)"></span>
+                    {{message.message}}
                   </v-card>
                 </v-col>
                 <v-col v-if="message.join" class="text-center subtitle-1 mt-0">
@@ -35,7 +35,6 @@
 </template>
 <script>
 import vueCustomScrollbar from 'vue-custom-scrollbar'
-import { toHTML } from 'discord-markdown'
 export default {
   components: {
     vueCustomScrollbar
@@ -47,9 +46,6 @@ export default {
     }
   },
   methods: {
-    discordParse(a){
-      return toHTML(a)
-    },
     sendMessage(e){
       var vm = this
       vm.$refs.input.internalValue = null
