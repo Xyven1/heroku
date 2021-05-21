@@ -7,10 +7,10 @@
             <vue-custom-scrollbar ref="scroll" style="height: 50vh; position: relative; right: -8px" class="pr-3" :settings="{suppressScrollX: true}">
               <v-row color="transparent" v-for="(message, index) in messageCache" :key="index">
                 <v-col class="pt-0" v-if="message.message">
-                  <div :class="{'text-right':message.userid==$store.state.userid}" class="caption grey--text">{{new Date(message.timestamp).toLocaleTimeString('en-US')}}</div>
-                  <v-card tile :color="message.user==$store.state.userid ? 'primary' : 'secondary'" dark class="pa-2 rounded-t-lg"
-                  width="45%" :class="{'float-right':message.user==$store.state.userid, 'rounded-bl-lg':message.user==$store.state.userid, 'rounded-br-lg':message.user!=$store.state.userid}">
-                    <div class="overline mt-n3" v-if="message.user!=$store.state.userid">{{message.user.username || "Anon"}}</div>
+                  <div :class="{'text-right':message.user.userid==$store.state.userid}" class="caption grey--text">{{new Date(message.timestamp).toLocaleTimeString('en-US')}}</div>
+                  <v-card tile :color="message.user.userid==$store.state.userid ? 'primary' : 'secondary'" dark class="pa-2 rounded-t-lg"
+                  width="45%" :class="{'float-right':message.user.userid==$store.state.userid, 'rounded-bl-lg':message.user.userid==$store.state.userid, 'rounded-br-lg':message.user.userid!=$store.state.userid}">
+                    <div class="overline mt-n3" v-if="message.user.userid!=$store.state.userid">{{message.user.username || "Anon"}}</div>
                     {{message.message}}
                   </v-card>
                 </v-col>
@@ -52,7 +52,7 @@ export default {
       e.preventDefault()
       var message = e.target.value
       if(message=='' || message==null) return
-      vm.messageCache.push({message: message, user: null, timestamp: Date.now()})
+      vm.messageCache.push({message: message, user: {userid:vm.$store.state.userid, username: vm.$store.state.username}, timestamp: Date.now()})
       vm.scrollToBottom()
       vm.$socket.client.emit('sendMessage', message)
     },
