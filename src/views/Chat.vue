@@ -1,10 +1,10 @@
 <template>
   <v-container class="fill-height">
-    <v-col class="pa-0 fill-height">
+    <v-col class="pa-0 fill-height d-flex flex-column">
       <v-row>
-        <v-col>
-          <v-card class="fill-height pa-2">
-            <vue-custom-scrollbar ref="scroll" style="height: 50vh; position: relative; right: -8px" class="pr-3" :settings="{suppressScrollX: true}" @ps-scroll-down.passive="scrollDown">
+        <v-col> 
+          <v-card class="pa-2 fill-height">
+            <vue-custom-scrollbar ref="scroll" :style="{height:chatHeight+'px'}" style="position: relative; right: -8px" class="pr-3" :settings="{suppressScrollX: true}" @ps-scroll-down.passive="scrollDown">
               <v-row color="transparent" v-for="(message, index) in messageCache" :key="index">
                 <v-col class="pt-0" v-if="message.message">
                   <div :class="{'text-right':message.user.userid==$store.state.userid}" class="caption grey--text">{{new Date(message.timestamp).toLocaleTimeString('en-US')}}</div>
@@ -20,16 +20,15 @@
                 <v-col v-if="message.leave" class="text-center subtitle-1 mt-0">
                   {{message.user.username || "Anon"}} left the chat
                 </v-col>
-              </v-row>
+              </v-row>  
             </vue-custom-scrollbar>
             <v-alert dense text v-if="newMessage" z-index="1" class="alert text-center pa-1">New messages <v-icon @click.stop="scrollToBottom()">mdi-arrow-down</v-icon></v-alert>
           </v-card>
         </v-col>
       </v-row>
-      <v-row>
+      <v-row class="shrink" ref="input">
         <v-col>
-          <v-textarea auto-grow rows="1" placeholder="Type here" v-model="message"  append-icon="mdi-send" @click:append="sendMessage"
-          @focus="isMobile ? scrollToBottom(1) : ()=>{}" @keydown.enter.exact.prevent="isMobile ? null : sendMessage()" ref="input"/>
+          <v-textarea auto-grow rows="1" placeholder="Type here" v-model="message"  append-icon="mdi-send" @click:append="sendMessage" @keydown.enter.exact="enter($event)"/>
         </v-col>
       </v-row>
     </v-col>
@@ -47,7 +46,8 @@ export default {
       message: null,
       messageCache: [],
       newMessage: false,
-      isMobile
+      isMobile,
+      chatHeight: 0
     }
   },
   methods: {
@@ -73,7 +73,23 @@ export default {
       var c = vm.$refs.scroll.$el
       if(c.scrollHeight - c.offsetHeight - c.scrollTop<25)
         vm.newMessage = false
-    }
+    },
+    focus(){
+      var vm = this
+      if(isMobile)
+        vm.$nextTick().then(()=> vm.scrollToBottom(1))
+    },
+    enter(e){
+      var vm = this
+      if(!isMobile){
+        e.preventDefault()
+        vm.sendMessage()
+      }
+    },
+    resize(){
+      var vm = this
+      vm.chatHeight = document.documentElement.clientHeight - 56 - 12 -12 -12 -12 -8 -8 - vm.$refs.input.clientHeight
+    },
   },
   mounted(){
     var vm = this
@@ -91,12 +107,24 @@ export default {
       else
         vm.scrollToBottom()
     })
+    vm.resize()
+  },
+  watch:{
+    message: function () {
+      this.$nextTick().then(this.resize)
+    }
+  },
+  created() {
+    window.addEventListener("resize", this.resize);
+  },
+  destroyed() {
+    window.removeEventListener("resize", this.resize);
   },
   beforeDestroy(){
     var vm = this
     vm.$socket.client.emit('leftChat')
     vm.$socket.client.off('chat')
-  }
+  },
 }
 </script>
 <style>
