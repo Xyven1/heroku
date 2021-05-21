@@ -16,6 +16,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "google-auth-library": "^6.0.6",
+    "mobile-device-detect": "^0.4.3",
     "pg-promise": "^10.10.2",
     "pg-promise-listener": "^1.0.6",
     "register-service-worker": "^1.7.1",
